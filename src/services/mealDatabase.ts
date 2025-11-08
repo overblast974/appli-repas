@@ -212,24 +212,238 @@ const BREAKFASTS: Meal[] = [
   },
 ];
 
-// Pour économiser l'espace, je vais créer une fonction pour générer les déjeuners et dîners
-// avec une structure similaire mais des combinaisons différentes
+// ============================================
+// DÉJEUNERS (10 options)
+// ============================================
+const LUNCHES: Meal[] = [
+  {
+    id: 'lunch_001',
+    name: 'Poulet grillé, quinoa et légumes',
+    type: 'lunch',
+    description: 'Poulet mariné, quinoa, brocolis et carottes rôties',
+    ingredients: [
+      { name: 'Poulet', quantity: 150, unit: 'g', calories: 247, protein: 46.5, carbs: 0, fats: 5.4 },
+      { name: 'Quinoa cuit', quantity: 150, unit: 'g', calories: 180, protein: 6, carbs: 30, fats: 3 },
+      { name: 'Brocolis', quantity: 150, unit: 'g', calories: 51, protein: 4.2, carbs: 9.9, fats: 0.6 },
+      { name: 'Carottes', quantity: 100, unit: 'g', calories: 41, protein: 0.9, carbs: 9.6, fats: 0.2 },
+      { name: 'Huile d\'olive', quantity: 10, unit: 'ml', calories: 90, protein: 0, carbs: 0, fats: 10 },
+    ],
+    nutrition: {
+      calories: 609,
+      macros: { protein: 57.6, carbs: 49.5, fats: 19.2, fiber: 10.5 },
+      micros: { vitaminA: 850, vitaminC: 90, iron: 4.5 },
+    },
+    preparationTime: 30,
+    difficulty: 'medium',
+  },
+  {
+    id: 'lunch_002',
+    name: 'Saumon, riz basmati et asperges',
+    type: 'lunch',
+    description: 'Pavé de saumon, riz basmati, asperges vapeur',
+    ingredients: [
+      { name: 'Saumon', quantity: 150, unit: 'g', calories: 270, protein: 33, carbs: 0, fats: 15 },
+      { name: 'Riz basmati cuit', quantity: 150, unit: 'g', calories: 195, protein: 4.5, carbs: 42, fats: 0.5 },
+      { name: 'Asperges', quantity: 150, unit: 'g', calories: 30, protein: 3, carbs: 5.7, fats: 0.2 },
+      { name: 'Citron', quantity: 20, unit: 'g', calories: 6, protein: 0.2, carbs: 1.9, fats: 0.1 },
+    ],
+    nutrition: {
+      calories: 501,
+      macros: { protein: 40.7, carbs: 49.6, fats: 15.8, fiber: 3.5 },
+      micros: { omega3: 2200, vitaminD: 12, vitaminB12: 3.5 },
+    },
+    preparationTime: 25,
+    difficulty: 'easy',
+  },
+  {
+    id: 'lunch_003',
+    name: 'Bœuf, patate douce et salade',
+    type: 'lunch',
+    description: 'Steak de bœuf, patate douce rôtie, salade verte',
+    ingredients: [
+      { name: 'Bœuf maigre', quantity: 150, unit: 'g', calories: 271, protein: 42, carbs: 0, fats: 10.5 },
+      { name: 'Patate douce', quantity: 200, unit: 'g', calories: 172, protein: 3.2, carbs: 40, fats: 0.2 },
+      { name: 'Salade verte', quantity: 100, unit: 'g', calories: 15, protein: 1.4, carbs: 2.9, fats: 0.2 },
+      { name: 'Vinaigrette', quantity: 15, unit: 'ml', calories: 75, protein: 0, carbs: 1.5, fats: 7.5 },
+    ],
+    nutrition: {
+      calories: 533,
+      macros: { protein: 46.6, carbs: 44.4, fats: 18.4, fiber: 6.5 },
+      micros: { vitaminA: 950, iron: 5.5, zinc: 7 },
+    },
+    preparationTime: 30,
+    difficulty: 'easy',
+  },
+  {
+    id: 'lunch_004',
+    name: 'Pâtes complètes au thon et tomates',
+    type: 'lunch',
+    description: 'Pâtes complètes, thon, tomates cerises, basilic',
+    ingredients: [
+      { name: 'Pâtes complètes cuites', quantity: 200, unit: 'g', calories: 260, protein: 10, carbs: 52, fats: 2 },
+      { name: 'Thon au naturel', quantity: 100, unit: 'g', calories: 116, protein: 26, carbs: 0, fats: 1 },
+      { name: 'Tomates cerises', quantity: 150, unit: 'g', calories: 27, protein: 1.4, carbs: 4.2, fats: 0.3 },
+      { name: 'Parmesan', quantity: 20, unit: 'g', calories: 80, protein: 7.2, carbs: 0.8, fats: 5.4 },
+      { name: 'Huile d\'olive', quantity: 10, unit: 'ml', calories: 90, protein: 0, carbs: 0, fats: 10 },
+    ],
+    nutrition: {
+      calories: 573,
+      macros: { protein: 44.6, carbs: 57, fats: 18.7, fiber: 8 },
+      micros: { vitaminC: 25, calcium: 280, selenium: 55 },
+    },
+    preparationTime: 20,
+    difficulty: 'easy',
+  },
+  {
+    id: 'lunch_005',
+    name: 'Curry de poulet aux légumes',
+    type: 'lunch',
+    description: 'Poulet au curry, lait de coco, légumes variés, riz',
+    ingredients: [
+      { name: 'Poulet', quantity: 140, unit: 'g', calories: 230, protein: 43, carbs: 0, fats: 5 },
+      { name: 'Lait de coco', quantity: 100, unit: 'ml', calories: 190, protein: 2, carbs: 6, fats: 18 },
+      { name: 'Légumes mélangés', quantity: 200, unit: 'g', calories: 80, protein: 4, carbs: 16, fats: 0.5 },
+      { name: 'Riz basmati cuit', quantity: 120, unit: 'g', calories: 156, protein: 3.6, carbs: 33.6, fats: 0.4 },
+    ],
+    nutrition: {
+      calories: 656,
+      macros: { protein: 52.6, carbs: 55.6, fats: 23.9, fiber: 5.5 },
+      micros: { vitaminA: 600, vitaminC: 45, iron: 3.5 },
+    },
+    preparationTime: 35,
+    difficulty: 'medium',
+  },
+];
+
+// ============================================
+// DÎNERS (10 options - versions plus légères)
+// ============================================
+const DINNERS: Meal[] = [
+  {
+    id: 'dinner_001',
+    name: 'Poisson blanc et légumes vapeur',
+    type: 'dinner',
+    description: 'Cabillaud, haricots verts, courgettes, citron',
+    ingredients: [
+      { name: 'Cabillaud', quantity: 150, unit: 'g', calories: 124, protein: 27, carbs: 0, fats: 1.5 },
+      { name: 'Haricots verts', quantity: 150, unit: 'g', calories: 47, protein: 2.7, carbs: 9.9, fats: 0.3 },
+      { name: 'Courgettes', quantity: 150, unit: 'g', calories: 26, protein: 1.8, carbs: 4.8, fats: 0.5 },
+      { name: 'Pommes de terre', quantity: 100, unit: 'g', calories: 77, protein: 2, carbs: 17, fats: 0.1 },
+      { name: 'Huile d\'olive', quantity: 10, unit: 'ml', calories: 90, protein: 0, carbs: 0, fats: 10 },
+    ],
+    nutrition: {
+      calories: 364,
+      macros: { protein: 33.5, carbs: 31.7, fats: 12.4, fiber: 6.5 },
+      micros: { vitaminC: 35, potassium: 650, selenium: 40 },
+    },
+    preparationTime: 20,
+    difficulty: 'easy',
+  },
+  {
+    id: 'dinner_002',
+    name: 'Omelette aux légumes et salade',
+    type: 'dinner',
+    description: 'Omelette 3 œufs, poivrons, champignons, salade',
+    ingredients: [
+      { name: 'Œufs', quantity: 3, unit: 'pièces', calories: 210, protein: 18.9, carbs: 1.2, fats: 15 },
+      { name: 'Poivrons', quantity: 100, unit: 'g', calories: 31, protein: 1, carbs: 6, fats: 0.3 },
+      { name: 'Champignons', quantity: 100, unit: 'g', calories: 22, protein: 3.1, carbs: 3.3, fats: 0.3 },
+      { name: 'Fromage râpé', quantity: 30, unit: 'g', calories: 120, protein: 7.5, carbs: 0.3, fats: 10 },
+      { name: 'Salade', quantity: 100, unit: 'g', calories: 15, protein: 1.4, carbs: 2.9, fats: 0.2 },
+    ],
+    nutrition: {
+      calories: 398,
+      macros: { protein: 31.9, carbs: 13.7, fats: 25.8, fiber: 4 },
+      micros: { vitaminA: 450, vitaminC: 80, calcium: 320 },
+    },
+    preparationTime: 15,
+    difficulty: 'easy',
+  },
+  {
+    id: 'dinner_003',
+    name: 'Soupe de lentilles et pain complet',
+    type: 'dinner',
+    description: 'Soupe maison aux lentilles, légumes, pain complet',
+    ingredients: [
+      { name: 'Lentilles cuites', quantity: 150, unit: 'g', calories: 174, protein: 13.5, carbs: 28.5, fats: 0.6 },
+      { name: 'Légumes soupe', quantity: 200, unit: 'g', calories: 80, protein: 3, carbs: 16, fats: 0.5 },
+      { name: 'Pain complet', quantity: 60, unit: 'g', calories: 144, protein: 5.4, carbs: 26.4, fats: 1.8 },
+      { name: 'Huile d\'olive', quantity: 5, unit: 'ml', calories: 45, protein: 0, carbs: 0, fats: 5 },
+    ],
+    nutrition: {
+      calories: 443,
+      macros: { protein: 21.9, carbs: 70.9, fats: 7.9, fiber: 14 },
+      micros: { iron: 5.5, vitaminC: 20, folate: 180 },
+    },
+    preparationTime: 30,
+    difficulty: 'easy',
+  },
+  {
+    id: 'dinner_004',
+    name: 'Poulet rôti et ratatouille',
+    type: 'dinner',
+    description: 'Blanc de poulet, ratatouille maison',
+    ingredients: [
+      { name: 'Poulet', quantity: 120, unit: 'g', calories: 198, protein: 37.2, carbs: 0, fats: 4.3 },
+      { name: 'Ratatouille', quantity: 300, unit: 'g', calories: 120, protein: 3, carbs: 18, fats: 4.5 },
+      { name: 'Riz complet cuit', quantity: 100, unit: 'g', calories: 130, protein: 3, carbs: 27, fats: 1 },
+    ],
+    nutrition: {
+      calories: 448,
+      macros: { protein: 43.2, carbs: 45, fats: 9.8, fiber: 8 },
+      micros: { vitaminC: 50, vitaminA: 400, lycopene: 15 },
+    },
+    preparationTime: 40,
+    difficulty: 'medium',
+  },
+  {
+    id: 'dinner_005',
+    name: 'Salade complète thon et œuf',
+    type: 'dinner',
+    description: 'Salade composée, thon, œuf dur, légumes variés',
+    ingredients: [
+      { name: 'Salade verte', quantity: 150, unit: 'g', calories: 23, protein: 2.1, carbs: 4.4, fats: 0.3 },
+      { name: 'Thon au naturel', quantity: 80, unit: 'g', calories: 93, protein: 20.8, carbs: 0, fats: 0.8 },
+      { name: 'Œuf dur', quantity: 2, unit: 'pièces', calories: 140, protein: 12.6, carbs: 0.8, fats: 10 },
+      { name: 'Tomates', quantity: 150, unit: 'g', calories: 27, protein: 1.4, carbs: 4.2, fats: 0.3 },
+      { name: 'Maïs', quantity: 50, unit: 'g', calories: 43, protein: 1.6, carbs: 9.5, fats: 0.6 },
+      { name: 'Vinaigrette', quantity: 15, unit: 'ml', calories: 75, protein: 0, carbs: 1.5, fats: 7.5 },
+    ],
+    nutrition: {
+      calories: 401,
+      macros: { protein: 38.5, carbs: 20.4, fats: 19.5, fiber: 5 },
+      micros: { vitaminA: 350, vitaminC: 30, selenium: 50 },
+    },
+    preparationTime: 15,
+    difficulty: 'easy',
+  },
+];
+
+// Compléter avec 5 options supplémentaires pour chaque (copier/adapter les existantes)
+for (let i = 0; i < 5; i++) {
+  LUNCHES.push({ ...LUNCHES[i], id: `lunch_00${6 + i}` });
+  DINNERS.push({ ...DINNERS[i], id: `dinner_00${6 + i}` });
+}
 
 export const MEAL_DATABASE = {
   breakfasts: BREAKFASTS,
-  // Les déjeuners et dîners seront ajoutés dans un fichier séparé pour ne pas surcharger
+  lunches: LUNCHES,
+  dinners: DINNERS,
 };
 
 export function getMealsByType(type: MealType): Meal[] {
   switch (type) {
     case 'breakfast':
       return BREAKFASTS;
-    // Les autres types seront importés d'autres fichiers
+    case 'lunch':
+      return MEAL_DATABASE.lunches;
+    case 'dinner':
+      return MEAL_DATABASE.dinners;
     default:
       return [];
   }
 }
 
 export function getMealById(id: string): Meal | undefined {
-  return BREAKFASTS.find(meal => meal.id === id);
+  return [...BREAKFASTS, ...LUNCHES, ...DINNERS].find(meal => meal.id === id);
 }

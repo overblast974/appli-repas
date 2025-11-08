@@ -61,17 +61,18 @@ function generateDailyPlan(
   const { mealsPerDay, includeSnacks } = userProfile;
 
   // Répartition calorique par repas (en pourcentage)
+  // RÈGLE: Toujours avoir au minimum 1 breakfast, 1 lunch, 1 dinner
   let calorieDistribution: { type: MealType; percentage: number }[];
 
   if (mealsPerDay === 3 && !includeSnacks) {
-    // 3 repas sans collation
+    // 3 repas classiques: petit-déjeuner, déjeuner, dîner
     calorieDistribution = [
       { type: 'breakfast', percentage: 0.30 },
       { type: 'lunch', percentage: 0.40 },
       { type: 'dinner', percentage: 0.30 },
     ];
   } else if (mealsPerDay === 3 && includeSnacks) {
-    // 3 repas avec collation
+    // 3 repas + 1 collation (donc 4 items au total)
     calorieDistribution = [
       { type: 'breakfast', percentage: 0.25 },
       { type: 'lunch', percentage: 0.35 },
@@ -79,21 +80,20 @@ function generateDailyPlan(
       { type: 'dinner', percentage: 0.30 },
     ];
   } else if (mealsPerDay === 4 && !includeSnacks) {
-    // 4 repas sans collation dédiée
+    // 4 repas sans collation: on double le déjeuner (repas le plus important)
     calorieDistribution = [
       { type: 'breakfast', percentage: 0.25 },
       { type: 'lunch', percentage: 0.30 },
-      { type: 'snack', percentage: 0.15 },
+      { type: 'lunch', percentage: 0.15 }, // Second déjeuner/en-cas principal
       { type: 'dinner', percentage: 0.30 },
     ];
   } else {
-    // 4 repas avec collations
+    // 4 repas avec collation (donc 4 items au total)
     calorieDistribution = [
       { type: 'breakfast', percentage: 0.25 },
+      { type: 'lunch', percentage: 0.35 },
       { type: 'snack', percentage: 0.10 },
-      { type: 'lunch', percentage: 0.30 },
-      { type: 'snack', percentage: 0.10 },
-      { type: 'dinner', percentage: 0.25 },
+      { type: 'dinner', percentage: 0.30 },
     ];
   }
 
@@ -170,6 +170,7 @@ function selectAndAdjustMeals(
 
 /**
  * Sélectionne un repas pour un type donné avec rotation
+ * S'assure qu'on a toujours des repas différents et appropriés
  */
 function selectMealForType(
   type: MealType,
@@ -183,10 +184,10 @@ function selectMealForType(
       availableMeals = MEAL_DATABASE.breakfasts;
       break;
     case 'lunch':
+      availableMeals = MEAL_DATABASE.lunches;
+      break;
     case 'dinner':
-      // Pour l'instant, utiliser les petits déjeuners comme placeholder
-      // À remplacer par les vrais déjeuners/dîners
-      availableMeals = MEAL_DATABASE.breakfasts;
+      availableMeals = MEAL_DATABASE.dinners;
       break;
     case 'snack':
       // Créer des collations simples

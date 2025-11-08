@@ -61,6 +61,8 @@ export interface MicroNutrients {
   zinc?: number; // mg
   omega3?: number; // mg
   selenium?: number; // µg
+  folate?: number; // µg
+  lycopene?: number; // mg
 }
 
 // Types pour les repas

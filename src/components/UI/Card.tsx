@@ -16,16 +16,14 @@ export const Card: React.FC<CardProps> = ({
   glass = false,
   onClick,
 }) => {
-  const baseClasses = 'rounded-2xl p-6';
-  const glassClasses = glass ? 'glass' : 'bg-white shadow-lg';
-  const hoverClasses = hover ? 'cursor-pointer card-hover' : '';
+  const classes = `${glass ? 'card-glass' : 'card'} ${hover ? 'card-hover' : ''} ${className}`;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className={`${baseClasses} ${glassClasses} ${hoverClasses} ${className}`}
+      className={classes}
       onClick={onClick}
     >
       {children}

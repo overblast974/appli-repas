@@ -14,32 +14,25 @@ export const Input: React.FC<InputProps> = ({
   ...props
 }) => {
   return (
-    <div className="w-full">
+    <div className="input-group">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="input-label">
           {label}
         </label>
       )}
-      <div className="relative">
+      <div className={icon ? 'input-icon' : ''}>
         {icon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <div className="input-icon-element">
             {icon}
           </div>
         )}
         <input
-          className={`
-            w-full px-4 py-3 rounded-xl border-2 border-gray-200
-            focus:border-primary-500 focus:ring-2 focus:ring-primary-200
-            transition-all duration-200 outline-none
-            ${icon ? 'pl-10' : ''}
-            ${error ? 'border-red-500' : ''}
-            ${className}
-          `}
+          className={`input ${error ? 'input-error' : ''} ${className}`}
           {...props}
         />
       </div>
       {error && (
-        <p className="mt-2 text-sm text-red-600">{error}</p>
+        <p className="input-error-message">{error}</p>
       )}
     </div>
   );

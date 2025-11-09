@@ -24,9 +24,10 @@ export interface UserProfile {
   // Préférences alimentaires
   mealsPerDay: 3 | 4;
   includeSnacks: boolean;
+  usesWhey: boolean; // Utilise ou accepte les protéines whey
 
-  // Allergies et restrictions (pour futures versions)
-  allergies?: string[];
+  // Allergies et restrictions alimentaires
+  allergies: string[]; // Liste des allergènes à éviter
   dietaryRestrictions?: string[];
 }
 
@@ -78,6 +79,7 @@ export interface Meal {
   preparationTime: number; // minutes
   difficulty: 'easy' | 'medium' | 'hard';
   imageUrl?: string;
+  allergens?: string[]; // Liste des allergènes présents dans le repas
 }
 
 export interface Ingredient {

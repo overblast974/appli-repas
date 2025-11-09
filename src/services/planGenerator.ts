@@ -12,6 +12,82 @@ import { MEAL_DATABASE } from './mealDatabase';
 const MAX_DEVIATION = 0.05; // 5% de marge d'erreur maximum
 
 /**
+ * Détecte automatiquement les allergènes dans un repas basé sur les ingrédients
+ */
+function detectAllergens(meal: Meal): string[] {
+  const allergens: string[] = [];
+  const ingredientsText = meal.ingredients
+    .map(ing => ing.name.toLowerCase())
+    .join(' ');
+
+  // Détection des allergènes courants
+  if (ingredientsText.includes('lait') || ingredientsText.includes('fromage') ||
+      ingredientsText.includes('yaourt') || ingredientsText.includes('whey') ||
+      ingredientsText.includes('crème') || ingredientsText.includes('beurre')) {
+    allergens.push('Lactose');
+  }
+
+  if (ingredientsText.includes('farine') || ingredientsText.includes('pain') ||
+      ingredientsText.includes('pâtes') || ingredientsText.includes('blé')) {
+    allergens.push('Gluten');
+  }
+
+  if (ingredientsText.includes('amande') || ingredientsText.includes('noix') ||
+      ingredientsText.includes('noisette') || ingredientsText.includes('cajou') ||
+      ingredientsText.includes('pistache')) {
+    allergens.push('Fruits à coque');
+  }
+
+  if (ingredientsText.includes('arachide') || ingredientsText.includes('cacahuète')) {
+    allergens.push('Arachides');
+  }
+
+  if (ingredientsText.includes('œuf') || ingredientsText.includes('oeuf')) {
+    allergens.push('Œufs');
+  }
+
+  if (ingredientsText.includes('poisson') || ingredientsText.includes('saumon') ||
+      ingredientsText.includes('thon') || ingredientsText.includes('cabillaud')) {
+    allergens.push('Poisson');
+  }
+
+  if (ingredientsText.includes('crevette') || ingredientsText.includes('crabe') ||
+      ingredientsText.includes('homard') || ingredientsText.includes('crustacé')) {
+    allergens.push('Crustacés');
+  }
+
+  if (ingredientsText.includes('soja') || ingredientsText.includes('tofu') ||
+      ingredientsText.includes('tempeh')) {
+    allergens.push('Soja');
+  }
+
+  if (ingredientsText.includes('sésame')) {
+    allergens.push('Sésame');
+  }
+
+  return allergens;
+}
+
+/**
+ * Vérifie si un repas est compatible avec les allergies de l'utilisateur
+ */
+function isMealCompatible(meal: Meal, userAllergies: string[]): boolean {
+  if (!userAllergies || userAllergies.length === 0) {
+    return true; // Pas d'allergies, tous les repas sont compatibles
+  }
+
+  // Détecter les allergènes dans le repas
+  const mealAllergens = meal.allergens || detectAllergens(meal);
+
+  // Vérifier s'il y a une correspondance avec les allergies de l'utilisateur
+  return !mealAllergens.some(allergen =>
+    userAllergies.some(userAllergen =>
+      allergen.toLowerCase() === userAllergen.toLowerCase()
+    )
+  );
+}
+
+/**
  * Génère un planning alimentaire optimisé
  */
 export function generateMealPlan(
@@ -101,7 +177,8 @@ function generateDailyPlan(
   const meals = selectAndAdjustMeals(
     calorieDistribution,
     targetCalories,
-    dayIndex
+    dayIndex,
+    userProfile
   );
 
   // Calculer la nutrition totale
@@ -126,13 +203,14 @@ function generateDailyPlan(
 function selectAndAdjustMeals(
   distribution: { type: MealType; percentage: number }[],
   targetCalories: number,
-  dayIndex: number
+  dayIndex: number,
+  userProfile: UserProfile
 ): MealWithQuantity[] {
   const selectedMeals: MealWithQuantity[] = [];
 
   for (const { type, percentage } of distribution) {
     const targetMealCalories = targetCalories * percentage;
-    const meal = selectMealForType(type, dayIndex, selectedMeals.length);
+    const meal = selectMealForType(type, dayIndex, selectedMeals.length, userProfile);
 
     if (meal) {
       // Calculer le multiplicateur pour ajuster les quantités
@@ -175,7 +253,8 @@ function selectAndAdjustMeals(
 function selectMealForType(
   type: MealType,
   dayIndex: number,
-  mealIndex: number
+  mealIndex: number,
+  userProfile: UserProfile
 ): Meal | null {
   let availableMeals: Meal[] = [];
 
@@ -196,6 +275,25 @@ function selectMealForType(
   }
 
   if (availableMeals.length === 0) return null;
+
+  // Filtrer selon les allergies de l'utilisateur
+  const userAllergies = userProfile.allergies || [];
+  availableMeals = availableMeals.filter(meal => isMealCompatible(meal, userAllergies));
+
+  // Filtrer les repas contenant de la whey si l'utilisateur n'en veut pas
+  if (!userProfile.usesWhey) {
+    availableMeals = availableMeals.filter(meal => {
+      const ingredientsText = meal.ingredients
+        .map(ing => ing.name.toLowerCase())
+        .join(' ');
+      return !ingredientsText.includes('whey') && !ingredientsText.includes('protéines en poudre');
+    });
+  }
+
+  if (availableMeals.length === 0) {
+    console.warn(`Aucun repas disponible pour le type ${type} après filtrage des allergies/préférences`);
+    return null;
+  }
 
   // Rotation des repas pour éviter les répétitions
   // Utilise dayIndex et mealIndex pour varier

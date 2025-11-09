@@ -161,11 +161,14 @@ export const MealPlanDetails: React.FC = () => {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-600">Précision</p>
+                  <p className="text-sm text-gray-600">Écart calorique</p>
                   <p className={`text-2xl font-bold ${
                     selectedDay.deviation <= 0.05 ? 'text-green-600' : 'text-yellow-600'
                   }`}>
                     {(selectedDay.deviation * 100).toFixed(1)}%
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {selectedDay.deviation <= 0.02 ? 'Excellent' : selectedDay.deviation <= 0.05 ? 'Très bon' : 'Acceptable'}
                   </p>
                 </div>
               </div>

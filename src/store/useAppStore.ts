@@ -37,7 +37,10 @@ export const useAppStore = create<AppStore>()(
     (set, get) => ({
       // État initial
       currentStep: 'welcome',
-      userProfile: {},
+      userProfile: {
+        usesWhey: true, // Par défaut, accepte la whey
+        allergies: [], // Par défaut, aucune allergie
+      },
       metabolicResults: undefined,
       selectedPlanDuration: undefined,
       currentMealPlan: undefined,
@@ -108,7 +111,10 @@ export const useAppStore = create<AppStore>()(
       reset: () =>
         set({
           currentStep: 'welcome',
-          userProfile: {},
+          userProfile: {
+            usesWhey: true,
+            allergies: [],
+          },
           metabolicResults: undefined,
           selectedPlanDuration: undefined,
           currentMealPlan: undefined,

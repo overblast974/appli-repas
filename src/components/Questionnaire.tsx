@@ -487,55 +487,129 @@ const PreferencesStep: React.FC<{
   userProfile: any;
   updateUserProfile: any;
   errors: Record<string, string>;
-}> = ({ userProfile, updateUserProfile, errors }) => (
-  <div className="space-y-6">
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-3">
-        Nombre de repas par jour
-      </label>
-      <div className="grid grid-cols-2 gap-4">
-        {[3, 4].map((num) => (
-          <Card
-            key={num}
-            hover
-            className={`cursor-pointer text-center ${
-              userProfile.mealsPerDay === num
-                ? 'ring-2 ring-primary-500 bg-primary-50'
-                : ''
-            }`}
-            onClick={() => updateUserProfile({ mealsPerDay: num })}
-          >
-            <p className="text-2xl font-bold text-primary-600">{num}</p>
-            <p className="text-sm text-gray-600">repas</p>
-          </Card>
-        ))}
-      </div>
-      {errors.mealsPerDay && <p className="text-sm text-red-600 mt-2">{errors.mealsPerDay}</p>}
-    </div>
+}> = ({ userProfile, updateUserProfile, errors }) => {
+  const commonAllergens = [
+    'Lactose',
+    'Gluten',
+    'Fruits à coque',
+    'Arachides',
+    'Œufs',
+    'Poisson',
+    'Crustacés',
+    'Soja',
+    'Sésame',
+  ];
 
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-3">
-        Inclure des collations ?
-      </label>
-      <div className="grid grid-cols-2 gap-4">
-        {[
-          { value: true, label: 'Oui' },
-          { value: false, label: 'Non' },
-        ].map((option) => (
-          <Card
-            key={option.value.toString()}
-            hover
-            className={`cursor-pointer text-center ${
-              userProfile.includeSnacks === option.value
-                ? 'ring-2 ring-primary-500 bg-primary-50'
-                : ''
-            }`}
-            onClick={() => updateUserProfile({ includeSnacks: option.value })}
-          >
-            <p className="font-medium">{option.label}</p>
-          </Card>
-        ))}
+  const toggleAllergy = (allergen: string) => {
+    const currentAllergies = userProfile.allergies || [];
+    const newAllergies = currentAllergies.includes(allergen)
+      ? currentAllergies.filter((a: string) => a !== allergen)
+      : [...currentAllergies, allergen];
+    updateUserProfile({ allergies: newAllergies });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Nombre de repas par jour
+        </label>
+        <div className="grid grid-cols-2 gap-4">
+          {[3, 4].map((num) => (
+            <Card
+              key={num}
+              hover
+              className={`cursor-pointer text-center ${
+                userProfile.mealsPerDay === num
+                  ? 'ring-2 ring-primary-500 bg-primary-50'
+                  : ''
+              }`}
+              onClick={() => updateUserProfile({ mealsPerDay: num })}
+            >
+              <p className="text-2xl font-bold text-primary-600">{num}</p>
+              <p className="text-sm text-gray-600">repas</p>
+            </Card>
+          ))}
+        </div>
+        {errors.mealsPerDay && <p className="text-sm text-red-600 mt-2">{errors.mealsPerDay}</p>}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Inclure des collations ?
+        </label>
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            { value: true, label: 'Oui' },
+            { value: false, label: 'Non' },
+          ].map((option) => (
+            <Card
+              key={option.value.toString()}
+              hover
+              className={`cursor-pointer text-center ${
+                userProfile.includeSnacks === option.value
+                  ? 'ring-2 ring-primary-500 bg-primary-50'
+                  : ''
+              }`}
+              onClick={() => updateUserProfile({ includeSnacks: option.value })}
+            >
+              <p className="font-medium">{option.label}</p>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Utilisez-vous ou acceptez-vous les protéines whey ?
+        </label>
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            { value: true, label: 'Oui' },
+            { value: false, label: 'Non' },
+          ].map((option) => (
+            <Card
+              key={option.value.toString()}
+              hover
+              className={`cursor-pointer text-center ${
+                userProfile.usesWhey === option.value
+                  ? 'ring-2 ring-primary-500 bg-primary-50'
+                  : ''
+              }`}
+              onClick={() => updateUserProfile({ usesWhey: option.value })}
+            >
+              <p className="font-medium">{option.label}</p>
+            </Card>
+          ))}
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Certains petits-déjeuners contiennent des protéines whey pour augmenter l'apport protéique
+        </p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Avez-vous des allergies ou intolérances alimentaires ?
+        </label>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {commonAllergens.map((allergen) => (
+            <div
+              key={allergen}
+              onClick={() => toggleAllergy(allergen)}
+              className={`selection-card ${
+                (userProfile.allergies || []).includes(allergen)
+                  ? 'selection-card-active'
+                  : ''
+              }`}
+            >
+              <p className="text-sm font-medium">{allergen}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Sélectionnez tous les allergènes que vous devez éviter. Les repas seront filtrés en conséquence.
+        </p>
       </div>
     </div>
-  </div>
-);
+  );
+};

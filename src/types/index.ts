@@ -123,7 +123,7 @@ export interface MealPlan {
 }
 
 // Types pour la navigation
-export type AppStep = 'welcome' | 'questionnaire' | 'results' | 'plan' | 'details';
+export type AppStep = 'welcome' | 'questionnaire' | 'results' | 'plan' | 'details' | 'history';
 
 export interface AppState {
   currentStep: AppStep;

@@ -439,7 +439,7 @@ const MealCard: React.FC<{
                     >
                       <span className="text-gray-700">{ingredient.name}</span>
                       <span className="font-medium text-gray-900">
-                        {Math.round(ingredient.quantity * 10) / 10} {ingredient.unit}
+                        {Math.floor(ingredient.quantity)} {ingredient.unit}
                       </span>
                     </div>
                   ))}

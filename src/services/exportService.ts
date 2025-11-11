@@ -126,7 +126,7 @@ export const exportService = {
             doc.addPage();
             yPosition = 20;
           }
-          const qty = Math.round(ingredient.quantity * meal.multiplier * 10) / 10;
+          const qty = Math.floor(ingredient.quantity * meal.multiplier);
           doc.text(`  • ${ingredient.name}: ${qty} ${ingredient.unit}`, 20, yPosition);
           yPosition += 5;
         });

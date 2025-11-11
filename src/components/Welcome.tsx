@@ -1,12 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Utensils, Target, TrendingUp, Heart } from 'lucide-react';
+import { Utensils, Target, TrendingUp, Heart, History } from 'lucide-react';
 import { Button } from './UI/Button';
 import { Card } from './UI/Card';
 import { useAppStore } from '../store/useAppStore';
 
 export const Welcome: React.FC = () => {
-  const { nextStep } = useAppStore();
+  const { nextStep, setStep } = useAppStore();
 
   const features = [
     {
@@ -105,27 +105,38 @@ export const Welcome: React.FC = () => {
             <p className="text-gray-600 mb-6">
               Commencez par un questionnaire rapide pour calculer vos besoins nutritionnels précis
             </p>
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={nextStep}
-              className="w-full md:w-auto"
-            >
-              Commencer maintenant
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div className="flex flex-col md:flex-row gap-4 justify-center">
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={nextStep}
+                className="w-full md:w-auto"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7l5 5m0 0l-5 5m5-5H6"
-                />
-              </svg>
-            </Button>
+                Créer un nouveau planning
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
+                </svg>
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => setStep('history')}
+                className="w-full md:w-auto"
+              >
+                <History className="w-5 h-5" />
+                Mes plannings sauvegardés
+              </Button>
+            </div>
           </Card>
 
           <p className="text-sm text-gray-500 mt-6">

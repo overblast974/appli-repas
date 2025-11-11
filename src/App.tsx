@@ -7,6 +7,7 @@ import { Questionnaire } from './components/Questionnaire';
 import { Results } from './components/Results';
 import { PlanSelection } from './components/PlanSelection';
 import { MealPlanDetails } from './components/MealPlanDetails';
+import { MealPlanHistory } from './components/MealPlanHistory';
 import { Auth } from './components/Auth';
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
         {currentStep === 'results' && <Results key="results" />}
         {currentStep === 'plan' && <PlanSelection key="plan" />}
         {currentStep === 'details' && <MealPlanDetails key="details" />}
+        {currentStep === 'history' && <MealPlanHistory key="history" />}
       </AnimatePresence>
     </div>
   );

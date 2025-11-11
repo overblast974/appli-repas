@@ -589,6 +589,34 @@ const PreferencesStep: React.FC<{
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">
+          Préférez-vous des repas végétariens ?
+        </label>
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            { value: true, label: 'Oui, végétarien' },
+            { value: false, label: 'Non, tout' },
+          ].map((option) => (
+            <Card
+              key={option.value.toString()}
+              hover
+              className={`cursor-pointer text-center ${
+                userProfile.isVegetarian === option.value
+                  ? 'ring-2 ring-primary-500 bg-primary-50'
+                  : ''
+              }`}
+              onClick={() => updateUserProfile({ isVegetarian: option.value })}
+            >
+              <p className="font-medium">{option.label}</p>
+            </Card>
+          ))}
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Les repas végétariens excluent la viande et le poisson mais incluent œufs et produits laitiers
+        </p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
           Avez-vous des allergies ou intolérances alimentaires ?
         </label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

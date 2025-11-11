@@ -39,6 +39,7 @@ export const useAppStore = create<AppStore>()(
       currentStep: 'welcome',
       userProfile: {
         usesWhey: true, // Par défaut, accepte la whey
+        isVegetarian: false, // Par défaut, non végétarien
         allergies: [], // Par défaut, aucune allergie
       },
       metabolicResults: undefined,
@@ -113,6 +114,7 @@ export const useAppStore = create<AppStore>()(
           currentStep: 'welcome',
           userProfile: {
             usesWhey: true,
+            isVegetarian: false,
             allergies: [],
           },
           metabolicResults: undefined,

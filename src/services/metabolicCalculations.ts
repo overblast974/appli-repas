@@ -84,6 +84,21 @@ function calculateKatchMcArdle(weight: number, bodyFatPercentage: number): numbe
 /**
  * Calcule les macronutriments recommandés selon l'objectif
  * Basé sur les recommandations scientifiques actuelles
+ *
+ * PERTE DE POIDS:
+ * - Protéines: 2-2.5g/kg (priorité pour préserver la masse musculaire)
+ * - Lipides: 25-30% calories totales (minimum 0.8g/kg)
+ * - Glucides: le reste
+ *
+ * PRISE DE MASSE:
+ * - Protéines: 1.8-2.2g/kg
+ * - Lipides: 25-30% calories totales
+ * - Glucides: le reste (carburant pour l'entraînement)
+ *
+ * MAINTENANCE:
+ * - Protéines: 1.6-2g/kg
+ * - Lipides: 25-30% calories totales
+ * - Glucides: le reste
  */
 function calculateMacros(
   calories: number,
@@ -95,35 +110,41 @@ function calculateMacros(
 
   switch (goal) {
     case 'lose_weight':
-      proteinPerKg = 2.0; // Protéines élevées pour préserver la masse musculaire
-      fatPercentage = 0.25; // 25% de lipides
+      proteinPerKg = 2.2; // Milieu de la fourchette 2-2.5g/kg
+      fatPercentage = 0.275; // 27.5% (milieu de 25-30%)
       break;
     case 'gain_muscle':
-      proteinPerKg = 2.2; // Protéines élevées pour la croissance musculaire
-      fatPercentage = 0.25; // 25% de lipides
+      proteinPerKg = 2.0; // Milieu de la fourchette 1.8-2.2g/kg
+      fatPercentage = 0.275; // 27.5%
       break;
     case 'lose_fat_gain_muscle':
-      proteinPerKg = 2.4; // Protéines très élevées pour la recomposition
+      proteinPerKg = 2.4; // Protéines élevées pour recomposition
       fatPercentage = 0.30; // 30% de lipides
       break;
     case 'rebalance':
     case 'maintain':
     default:
-      proteinPerKg = 1.6; // Protéines modérées
-      fatPercentage = 0.30; // 30% de lipides
+      proteinPerKg = 1.8; // Milieu de la fourchette 1.6-2g/kg
+      fatPercentage = 0.275; // 27.5%
       break;
   }
 
+  // Calcul des protéines
   const protein = Math.round(weight * proteinPerKg);
   const proteinCalories = protein * 4; // 4 kcal/g
 
-  const fats = Math.round((calories * fatPercentage) / 9); // 9 kcal/g
+  // Calcul des lipides avec minimum de 0.8g/kg
+  const minFatGrams = Math.ceil(weight * 0.8);
+  const fatFromPercentage = Math.round((calories * fatPercentage) / 9); // 9 kcal/g
+  const fats = Math.max(minFatGrams, fatFromPercentage); // Prendre le max pour respecter le minimum
   const fatCalories = fats * 9;
 
+  // Calcul des glucides (le reste)
   const remainingCalories = calories - proteinCalories - fatCalories;
-  const carbs = Math.round(remainingCalories / 4); // 4 kcal/g
+  const carbs = Math.max(0, Math.round(remainingCalories / 4)); // 4 kcal/g
 
-  const fiber = Math.round(calories / 1000 * 14); // 14g de fibres pour 1000 kcal (recommandation)
+  // Fibres: 14g pour 1000 kcal (recommandation ANSES)
+  const fiber = Math.round((calories / 1000) * 14);
 
   return {
     protein,

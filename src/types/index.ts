@@ -25,6 +25,7 @@ export interface UserProfile {
   mealsPerDay: 3 | 4;
   includeSnacks: boolean;
   usesWhey: boolean; // Utilise ou accepte les protéines whey
+  isVegetarian: boolean; // Préfère des repas végétariens
 
   // Allergies et restrictions alimentaires
   allergies: string[]; // Liste des allergènes à éviter
@@ -80,6 +81,9 @@ export interface Meal {
   difficulty: 'easy' | 'medium' | 'hard';
   imageUrl?: string;
   allergens?: string[]; // Liste des allergènes présents dans le repas
+  shopping_list?: string[]; // Liste de courses pour le repas
+  preparation_steps?: string[]; // Étapes de préparation simplifiées
+  isVegetarian?: boolean; // Indique si le plat est végétarien
 }
 
 export interface Ingredient {

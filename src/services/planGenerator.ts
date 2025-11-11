@@ -89,6 +89,11 @@ function isMealCompatible(meal: Meal, userAllergies: string[]): boolean {
 
 /**
  * Génère un planning alimentaire optimisé
+ *
+ * Règles:
+ * - 1 repas maximum 1x/semaine (pour éviter la monotonie)
+ * - Respect des macros avec ±5% de marge
+ * - Filtrage selon allergies et préférences
  */
 export function generateMealPlan(
   userProfile: UserProfile,
@@ -97,24 +102,32 @@ export function generateMealPlan(
 ): MealPlan {
   const dailyPlans: DailyMealPlan[] = [];
   const startDate = new Date();
+  const usedMealIds = new Set<string>(); // Suivre les repas utilisés dans la semaine
 
   for (let day = 0; day < duration; day++) {
     const currentDate = new Date(startDate);
     currentDate.setDate(startDate.getDate() + day);
 
+    // Réinitialiser les repas utilisés chaque semaine (7 jours)
+    if (day > 0 && day % 7 === 0) {
+      usedMealIds.clear();
+    }
+
     const dailyPlan = generateDailyPlan(
       userProfile,
       metabolicResults,
       currentDate,
-      day
+      day,
+      usedMealIds
     );
 
     dailyPlans.push(dailyPlan);
   }
 
-  return {
+  // Générer le plan final
+  const plan: MealPlan = {
     id: generatePlanId(),
-    userId: 'user_' + Date.now(), // À remplacer par un vrai ID utilisateur
+    userId: 'user_' + Date.now(),
     startDate,
     duration,
     dailyPlans,
@@ -122,6 +135,15 @@ export function generateMealPlan(
     metabolicResults,
     createdAt: new Date(),
   };
+
+  // Vérifier la qualité du plan
+  const quality = evaluatePlanQuality(plan);
+
+  if (quality.score < 80) {
+    console.warn('Plan de qualité moyenne:', quality);
+  }
+
+  return plan;
 }
 
 /**
@@ -131,7 +153,8 @@ function generateDailyPlan(
   userProfile: UserProfile,
   metabolicResults: MetabolicResults,
   date: Date,
-  dayIndex: number
+  dayIndex: number,
+  usedMealIds: Set<string>
 ): DailyMealPlan {
   const targetCalories = metabolicResults.adjustedCalories;
   const { mealsPerDay, includeSnacks } = userProfile;
@@ -178,15 +201,32 @@ function generateDailyPlan(
     calorieDistribution,
     targetCalories,
     dayIndex,
-    userProfile
+    userProfile,
+    usedMealIds
   );
 
   // Calculer la nutrition totale
   const totalNutrition = calculateTotalNutrition(meals);
 
-  // Calculer la déviation par rapport à l'objectif
+  // Calculer la déviation par rapport à l'objectif calorique
   const deviation =
     Math.abs(totalNutrition.calories - targetCalories) / targetCalories;
+
+  // Valider que les macros respectent les cibles avec ±5% de marge
+  const macroValidation = validateMacroTargets(
+    totalNutrition.macros,
+    metabolicResults.macros
+  );
+
+  // Afficher un avertissement si les macros ne respectent pas les cibles
+  if (!macroValidation.isValid) {
+    console.warn(
+      `Jour ${dayIndex + 1}: Macros hors cible (±5%)`,
+      `Protéines: ${(macroValidation.deviations.protein * 100).toFixed(1)}%`,
+      `Glucides: ${(macroValidation.deviations.carbs * 100).toFixed(1)}%`,
+      `Lipides: ${(macroValidation.deviations.fats * 100).toFixed(1)}%`
+    );
+  }
 
   return {
     date,
@@ -204,15 +244,19 @@ function selectAndAdjustMeals(
   distribution: { type: MealType; percentage: number }[],
   targetCalories: number,
   dayIndex: number,
-  userProfile: UserProfile
+  userProfile: UserProfile,
+  usedMealIds: Set<string>
 ): MealWithQuantity[] {
   const selectedMeals: MealWithQuantity[] = [];
 
   for (const { type, percentage } of distribution) {
     const targetMealCalories = targetCalories * percentage;
-    const meal = selectMealForType(type, dayIndex, selectedMeals.length, userProfile);
+    const meal = selectMealForType(type, dayIndex, selectedMeals.length, userProfile, usedMealIds);
 
     if (meal) {
+      // Marquer ce repas comme utilisé
+      usedMealIds.add(meal.id);
+
       // Calculer le multiplicateur pour ajuster les quantités
       const multiplier = targetMealCalories / meal.nutrition.calories;
 
@@ -249,27 +293,30 @@ function selectAndAdjustMeals(
 /**
  * Sélectionne un repas pour un type donné avec rotation
  * S'assure qu'on a toujours des repas différents et appropriés
+ *
+ * RÈGLE: 1 repas maximum 1x/semaine (pour éviter la monotonie)
  */
 function selectMealForType(
   type: MealType,
-  dayIndex: number,
-  mealIndex: number,
-  userProfile: UserProfile
+  _dayIndex: number,
+  _mealIndex: number,
+  userProfile: UserProfile,
+  usedMealIds: Set<string>
 ): Meal | null {
   let availableMeals: Meal[] = [];
 
   switch (type) {
     case 'breakfast':
-      availableMeals = MEAL_DATABASE.breakfasts;
+      availableMeals = [...MEAL_DATABASE.breakfasts];
       break;
     case 'lunch':
-      availableMeals = MEAL_DATABASE.lunches;
+      availableMeals = [...MEAL_DATABASE.lunches];
       break;
     case 'dinner':
-      availableMeals = MEAL_DATABASE.dinners;
+      availableMeals = [...MEAL_DATABASE.dinners];
       break;
     case 'snack':
-      // Créer des collations simples
+      // Créer des collations simples (toujours différentes)
       availableMeals = createSimpleSnacks();
       break;
   }
@@ -290,15 +337,44 @@ function selectMealForType(
     });
   }
 
-  if (availableMeals.length === 0) {
-    console.warn(`Aucun repas disponible pour le type ${type} après filtrage des allergies/préférences`);
-    return null;
+  // Filtrer selon la préférence végétarienne
+  if (userProfile.isVegetarian) {
+    availableMeals = availableMeals.filter(meal => meal.isVegetarian === true);
   }
 
-  // Rotation des repas pour éviter les répétitions
-  // Utilise dayIndex et mealIndex pour varier
-  const index = (dayIndex * 3 + mealIndex) % availableMeals.length;
-  return availableMeals[index];
+  // Filtrer les repas déjà utilisés dans la semaine (sauf pour snacks)
+  if (type !== 'snack') {
+    availableMeals = availableMeals.filter(meal => !usedMealIds.has(meal.id));
+  }
+
+  if (availableMeals.length === 0) {
+    console.warn(`Aucun repas disponible pour le type ${type} après tous les filtrages`);
+    // Si plus de repas disponibles, réinitialiser et utiliser n'importe quel repas valide
+    availableMeals = [];
+    switch (type) {
+      case 'breakfast':
+        availableMeals = MEAL_DATABASE.breakfasts;
+        break;
+      case 'lunch':
+        availableMeals = MEAL_DATABASE.lunches;
+        break;
+      case 'dinner':
+        availableMeals = MEAL_DATABASE.dinners;
+        break;
+    }
+    // Appliquer les filtres essentiels (allergies et végétarien) même en fallback
+    availableMeals = availableMeals.filter(meal => isMealCompatible(meal, userAllergies));
+    if (userProfile.isVegetarian) {
+      availableMeals = availableMeals.filter(meal => meal.isVegetarian === true);
+    }
+    if (availableMeals.length === 0) return null;
+  }
+
+  // Mélanger les repas disponibles pour plus de variété
+  const shuffled = [...availableMeals].sort(() => Math.random() - 0.5);
+
+  // Sélectionner le premier repas après mélange
+  return shuffled[0];
 }
 
 /**
@@ -371,6 +447,32 @@ function createSimpleSnacks(): Meal[] {
       difficulty: 'easy',
     },
   ];
+}
+
+/**
+ * Vérifie si les macros du jour respectent les cibles avec ±5% de marge
+ */
+function validateMacroTargets(
+  actualMacros: { protein: number; carbs: number; fats: number },
+  targetMacros: { protein: number; carbs: number; fats: number }
+): { isValid: boolean; deviations: { protein: number; carbs: number; fats: number } } {
+  const proteinDeviation = Math.abs(actualMacros.protein - targetMacros.protein) / targetMacros.protein;
+  const carbsDeviation = Math.abs(actualMacros.carbs - targetMacros.carbs) / targetMacros.carbs;
+  const fatsDeviation = Math.abs(actualMacros.fats - targetMacros.fats) / targetMacros.fats;
+
+  const isValid =
+    proteinDeviation <= MAX_DEVIATION &&
+    carbsDeviation <= MAX_DEVIATION &&
+    fatsDeviation <= MAX_DEVIATION;
+
+  return {
+    isValid,
+    deviations: {
+      protein: proteinDeviation,
+      carbs: carbsDeviation,
+      fats: fatsDeviation,
+    },
+  };
 }
 
 /**

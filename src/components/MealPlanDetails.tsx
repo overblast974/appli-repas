@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Clock,
@@ -8,17 +8,37 @@ import {
   Share2,
   ChevronDown,
   ChevronUp,
+  LogOut,
 } from 'lucide-react';
 import { Button } from './UI/Button';
 import { Card } from './UI/Card';
 import { ProgressBar } from './UI/ProgressBar';
 import { useAppStore } from '../store/useAppStore';
+import { useAuthStore } from '../store/useAuthStore';
+import { exportService } from '../services/exportService';
 import type { MealWithQuantity } from '../types';
 
 export const MealPlanDetails: React.FC = () => {
   const { currentMealPlan, metabolicResults, reset } = useAppStore();
+  const { saveMealPlan, signOut, user } = useAuthStore();
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [expandedMealId, setExpandedMealId] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  // Sauvegarder automatiquement le plan au chargement
+  useEffect(() => {
+    const autoSave = async () => {
+      if (currentMealPlan && user && !saved) {
+        try {
+          await saveMealPlan(currentMealPlan);
+          setSaved(true);
+        } catch (error) {
+          console.error('Erreur lors de la sauvegarde automatique:', error);
+        }
+      }
+    };
+    autoSave();
+  }, [currentMealPlan, user, saved, saveMealPlan]);
 
   if (!currentMealPlan || !metabolicResults) {
     return (
@@ -29,6 +49,35 @@ export const MealPlanDetails: React.FC = () => {
   }
 
   const selectedDay = currentMealPlan.dailyPlans[selectedDayIndex];
+
+  const handleDownload = () => {
+    try {
+      exportService.generatePDF(currentMealPlan);
+    } catch (error) {
+      console.error('Erreur lors du téléchargement:', error);
+      alert('Erreur lors de la génération du PDF');
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      await exportService.shareMealPlan(currentMealPlan);
+    } catch (error) {
+      console.error('Erreur lors du partage:', error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    if (window.confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+      try {
+        await signOut();
+        reset();
+      } catch (error) {
+        console.error('Erreur lors de la déconnexion:', error);
+        alert('Erreur lors de la déconnexion');
+      }
+    }
+  };
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('fr-FR', {
@@ -80,17 +129,21 @@ export const MealPlanDetails: React.FC = () => {
                 {currentMealPlan.duration} jour{currentMealPlan.duration > 1 ? 's' : ''} de repas équilibrés
               </p>
             </div>
-            <div className="flex gap-3">
-              <Button variant="outline" size="sm">
+            <div className="flex flex-wrap gap-3">
+              <Button variant="outline" size="sm" onClick={handleDownload}>
                 <Download className="w-4 h-4" />
                 Télécharger
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleShare}>
                 <Share2 className="w-4 h-4" />
                 Partager
               </Button>
               <Button variant="ghost" size="sm" onClick={handleNewPlan}>
                 Nouveau planning
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                <LogOut className="w-4 h-4" />
+                Déconnexion
               </Button>
             </div>
           </div>

@@ -10,6 +10,49 @@ import type {
 import { MEAL_DATABASE } from './mealDatabase';
 
 const MAX_DEVIATION = 0.05; // 5% de marge d'erreur maximum
+const MIN_MULTIPLIER = 0.5; // Multiplicateur minimum pour les portions (50%)
+const MAX_MULTIPLIER = 2.0; // Multiplicateur maximum pour les portions (200%)
+
+/**
+ * Calcule les quantités ajustées d'un ingrédient selon le nombre de portions
+ * @param ingredient - L'ingrédient à ajuster
+ * @param servings - Nombre de portions (par défaut 1)
+ * @returns L'ingrédient avec quantités ajustées
+ */
+export function getAdjustedIngredient(
+  ingredient: { name: string; quantity: number; unit: string; calories: number; protein: number; carbs: number; fats: number },
+  servings: number = 1
+) {
+  return {
+    ...ingredient,
+    quantity: Math.round(ingredient.quantity * servings * 10) / 10, // Arrondi à 1 décimale
+    calories: Math.round(ingredient.calories * servings),
+    protein: Math.round(ingredient.protein * servings * 10) / 10,
+    carbs: Math.round(ingredient.carbs * servings * 10) / 10,
+    fats: Math.round(ingredient.fats * servings * 10) / 10,
+  };
+}
+
+/**
+ * Calcule la nutrition ajustée selon le nombre de portions
+ * @param nutrition - Info nutritionnelle de base
+ * @param servings - Nombre de portions (par défaut 1)
+ * @returns Nutrition ajustée
+ */
+export function getAdjustedNutrition(
+  nutrition: { calories: number; macros: { protein: number; carbs: number; fats: number; fiber: number } },
+  servings: number = 1
+) {
+  return {
+    calories: Math.round(nutrition.calories * servings),
+    macros: {
+      protein: Math.round(nutrition.macros.protein * servings * 10) / 10,
+      carbs: Math.round(nutrition.macros.carbs * servings * 10) / 10,
+      fats: Math.round(nutrition.macros.fats * servings * 10) / 10,
+      fiber: Math.round(nutrition.macros.fiber * servings * 10) / 10,
+    },
+  };
+}
 
 /**
  * Détecte automatiquement les allergènes dans un repas basé sur les ingrédients
@@ -187,12 +230,13 @@ function generateDailyPlan(
       { type: 'dinner', percentage: 0.30 },
     ];
   } else {
-    // 4 repas avec collation (donc 4 items au total)
+    // 4 repas avec collation (donc 5 items au total) - CORRIGÉ
     calorieDistribution = [
-      { type: 'breakfast', percentage: 0.25 },
-      { type: 'lunch', percentage: 0.35 },
+      { type: 'breakfast', percentage: 0.20 },
+      { type: 'lunch', percentage: 0.30 },
       { type: 'snack', percentage: 0.10 },
-      { type: 'dinner', percentage: 0.30 },
+      { type: 'dinner', percentage: 0.25 },
+      { type: 'snack', percentage: 0.15 }, // Collation du soir
     ];
   }
 
@@ -257,8 +301,10 @@ function selectAndAdjustMeals(
       // Marquer ce repas comme utilisé
       usedMealIds.add(meal.id);
 
-      // Calculer le multiplicateur pour ajuster les quantités
-      const multiplier = targetMealCalories / meal.nutrition.calories;
+      // Calculer le multiplicateur pour ajuster les quantités avec limites
+      let multiplier = targetMealCalories / meal.nutrition.calories;
+      // Appliquer les limites min/max pour éviter des portions irréalistes
+      multiplier = Math.max(MIN_MULTIPLIER, Math.min(MAX_MULTIPLIER, multiplier));
 
       const mealWithQuantity: MealWithQuantity = {
         ...meal,
@@ -316,8 +362,8 @@ function selectMealForType(
       availableMeals = [...MEAL_DATABASE.dinners];
       break;
     case 'snack':
-      // Créer des collations simples (toujours différentes)
-      availableMeals = createSimpleSnacks();
+      // Utiliser toutes les collations de la base de données
+      availableMeals = [...MEAL_DATABASE.snacks];
       break;
   }
 
@@ -377,77 +423,6 @@ function selectMealForType(
   return shuffled[0];
 }
 
-/**
- * Crée des collations simples
- */
-function createSimpleSnacks(): Meal[] {
-  return [
-    {
-      id: 'snack_001',
-      name: 'Pomme et amandes',
-      type: 'snack',
-      description: 'Une pomme moyenne et une poignée d\'amandes',
-      ingredients: [
-        { name: 'Pomme', quantity: 150, unit: 'g', calories: 78, protein: 0.5, carbs: 20.7, fats: 0.3 },
-        { name: 'Amandes', quantity: 30, unit: 'g', calories: 174, protein: 6.3, carbs: 6, fats: 15 },
-      ],
-      nutrition: {
-        calories: 252,
-        macros: { protein: 6.8, carbs: 26.7, fats: 15.3, fiber: 6.5 },
-      },
-      preparationTime: 2,
-      difficulty: 'easy',
-    },
-    {
-      id: 'snack_002',
-      name: 'Yaourt grec et fruits',
-      type: 'snack',
-      description: 'Yaourt grec nature avec fruits frais',
-      ingredients: [
-        { name: 'Yaourt grec 0%', quantity: 150, unit: 'g', calories: 87, protein: 15, carbs: 6, fats: 0.6 },
-        { name: 'Fruits rouges', quantity: 100, unit: 'g', calories: 50, protein: 1, carbs: 10, fats: 0.3 },
-      ],
-      nutrition: {
-        calories: 137,
-        macros: { protein: 16, carbs: 16, fats: 0.9, fiber: 3 },
-      },
-      preparationTime: 2,
-      difficulty: 'easy',
-    },
-    {
-      id: 'snack_003',
-      name: 'Banane et beurre de cacahuète',
-      type: 'snack',
-      description: 'Banane avec une cuillère de beurre de cacahuète',
-      ingredients: [
-        { name: 'Banane', quantity: 120, unit: 'g', calories: 107, protein: 1.3, carbs: 27.4, fats: 0.4 },
-        { name: 'Beurre de cacahuète', quantity: 20, unit: 'g', calories: 119, protein: 5.1, carbs: 4.3, fats: 10 },
-      ],
-      nutrition: {
-        calories: 226,
-        macros: { protein: 6.4, carbs: 31.7, fats: 10.4, fiber: 4 },
-      },
-      preparationTime: 2,
-      difficulty: 'easy',
-    },
-    {
-      id: 'snack_004',
-      name: 'Cottage cheese et concombre',
-      type: 'snack',
-      description: 'Fromage blanc avec bâtonnets de concombre',
-      ingredients: [
-        { name: 'Fromage blanc 0%', quantity: 150, unit: 'g', calories: 69, protein: 12, carbs: 7.5, fats: 0.3 },
-        { name: 'Concombre', quantity: 100, unit: 'g', calories: 15, protein: 0.7, carbs: 3.6, fats: 0.1 },
-      ],
-      nutrition: {
-        calories: 84,
-        macros: { protein: 12.7, carbs: 11.1, fats: 0.4, fiber: 0.5 },
-      },
-      preparationTime: 2,
-      difficulty: 'easy',
-    },
-  ];
-}
 
 /**
  * Vérifie si les macros du jour respectent les cibles avec ±5% de marge

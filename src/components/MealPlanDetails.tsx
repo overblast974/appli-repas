@@ -9,6 +9,7 @@ import {
   ChevronDown,
   ChevronUp,
   LogOut,
+  Users,
 } from 'lucide-react';
 import { Button } from './UI/Button';
 import { Card } from './UI/Card';
@@ -16,6 +17,7 @@ import { ProgressBar } from './UI/ProgressBar';
 import { useAppStore } from '../store/useAppStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { exportService } from '../services/exportService';
+import { getAdjustedIngredient, getAdjustedNutrition } from '../services/planGenerator';
 import type { MealWithQuantity } from '../types';
 
 export const MealPlanDetails: React.FC = () => {
@@ -342,6 +344,8 @@ const MealCard: React.FC<{
   mealTypeLabel: string;
   mealTypeEmoji: string;
 }> = ({ meal, isExpanded, onToggle, mealTypeLabel, mealTypeEmoji }) => {
+  const [servings, setServings] = useState(1);
+
   const difficultyColors = {
     easy: 'text-green-600 bg-green-100',
     medium: 'text-yellow-600 bg-yellow-100',
@@ -353,6 +357,9 @@ const MealCard: React.FC<{
     medium: 'Moyen',
     hard: 'Difficile',
   };
+
+  // Calculer la nutrition ajustée selon le nombre de portions
+  const adjustedNutrition = getAdjustedNutrition(meal.nutrition, servings);
 
   return (
     <motion.div
@@ -393,7 +400,7 @@ const MealCard: React.FC<{
           </div>
           <div className="flex items-center gap-1 text-sm font-semibold text-primary-600">
             <TrendingUp className="w-4 h-4" />
-            {Math.round(meal.nutrition.calories)} kcal
+            {Math.round(adjustedNutrition.calories)} kcal
           </div>
         </div>
 
@@ -402,19 +409,19 @@ const MealCard: React.FC<{
           <div className="flex-1 text-center">
             <p className="text-xs text-gray-600 mb-1">Protéines</p>
             <p className="font-bold text-primary-600">
-              {Math.round(meal.nutrition.macros.protein)}g
+              {Math.round(adjustedNutrition.macros.protein)}g
             </p>
           </div>
           <div className="flex-1 text-center">
             <p className="text-xs text-gray-600 mb-1">Glucides</p>
             <p className="font-bold text-blue-600">
-              {Math.round(meal.nutrition.macros.carbs)}g
+              {Math.round(adjustedNutrition.macros.carbs)}g
             </p>
           </div>
           <div className="flex-1 text-center">
             <p className="text-xs text-gray-600 mb-1">Lipides</p>
             <p className="font-bold text-yellow-600">
-              {Math.round(meal.nutrition.macros.fats)}g
+              {Math.round(adjustedNutrition.macros.fats)}g
             </p>
           </div>
         </div>
@@ -430,19 +437,54 @@ const MealCard: React.FC<{
               className="overflow-hidden"
             >
               <div className="mt-4 pt-4 border-t border-gray-200">
+                {/* Sélecteur de portions - Feature Premium */}
+                <div className="mb-4 p-3 bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-5 h-5 text-primary-600" />
+                      <span className="font-semibold text-gray-800">Nombre de portions</span>
+                      <span className="text-xs px-2 py-0.5 bg-primary-600 text-white rounded-full">Premium</span>
+                    </div>
+                    <select
+                      value={servings}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        setServings(Number(e.target.value));
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="px-3 py-1.5 border border-primary-300 rounded-lg bg-white text-gray-700 font-medium focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all cursor-pointer"
+                    >
+                      <option value={1}>1 personne</option>
+                      <option value={2}>2 personnes</option>
+                      <option value={3}>3 personnes</option>
+                      <option value={4}>4 personnes</option>
+                      <option value={6}>6 personnes</option>
+                      <option value={8}>8 personnes</option>
+                    </select>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-2">
+                    {servings > 1
+                      ? `Quantités multipliées par ${servings} pour ${servings} personnes`
+                      : 'Quantités pour 1 personne (selon vos besoins caloriques)'}
+                  </p>
+                </div>
+
                 <h4 className="font-semibold text-gray-800 mb-3">Ingrédients</h4>
                 <div className="space-y-2">
-                  {meal.ingredients.map((ingredient, index) => (
-                    <div
-                      key={index}
-                      className="flex justify-between items-center text-sm bg-white p-2 rounded"
-                    >
-                      <span className="text-gray-700">{ingredient.name}</span>
-                      <span className="font-medium text-gray-900">
-                        {Math.floor(ingredient.quantity)} {ingredient.unit}
-                      </span>
-                    </div>
-                  ))}
+                  {meal.ingredients.map((ingredient, index) => {
+                    const adjustedIng = getAdjustedIngredient(ingredient, servings);
+                    return (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center text-sm bg-white p-2 rounded"
+                      >
+                        <span className="text-gray-700">{adjustedIng.name}</span>
+                        <span className="font-medium text-gray-900">
+                          {adjustedIng.quantity} {adjustedIng.unit}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </motion.div>

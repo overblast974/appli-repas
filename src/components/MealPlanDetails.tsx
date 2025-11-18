@@ -398,9 +398,16 @@ const MealCard: React.FC<{
               {difficultyLabels[meal.difficulty]}
             </span>
           </div>
-          <div className="flex items-center gap-1 text-sm font-semibold text-primary-600">
-            <TrendingUp className="w-4 h-4" />
-            {Math.round(adjustedNutrition.calories)} kcal
+          <div className="flex flex-col items-center text-sm font-semibold text-primary-600">
+            <div className="flex items-center gap-1">
+              <TrendingUp className="w-4 h-4" />
+              {Math.round(meal.nutrition.calories)} kcal/pers
+            </div>
+            {servings > 1 && (
+              <span className="text-xs text-gray-500 mt-0.5">
+                ({Math.round(adjustedNutrition.calories)} kcal total)
+              </span>
+            )}
           </div>
         </div>
 
@@ -409,20 +416,35 @@ const MealCard: React.FC<{
           <div className="flex-1 text-center">
             <p className="text-xs text-gray-600 mb-1">Protéines</p>
             <p className="font-bold text-primary-600">
-              {Math.round(adjustedNutrition.macros.protein)}g
+              {Math.round(meal.nutrition.macros.protein)}g
             </p>
+            {servings > 1 && (
+              <p className="text-xs text-gray-500 mt-0.5">
+                ({Math.round(adjustedNutrition.macros.protein)}g total)
+              </p>
+            )}
           </div>
           <div className="flex-1 text-center">
             <p className="text-xs text-gray-600 mb-1">Glucides</p>
             <p className="font-bold text-blue-600">
-              {Math.round(adjustedNutrition.macros.carbs)}g
+              {Math.round(meal.nutrition.macros.carbs)}g
             </p>
+            {servings > 1 && (
+              <p className="text-xs text-gray-500 mt-0.5">
+                ({Math.round(adjustedNutrition.macros.carbs)}g total)
+              </p>
+            )}
           </div>
           <div className="flex-1 text-center">
             <p className="text-xs text-gray-600 mb-1">Lipides</p>
             <p className="font-bold text-yellow-600">
-              {Math.round(adjustedNutrition.macros.fats)}g
+              {Math.round(meal.nutrition.macros.fats)}g
             </p>
+            {servings > 1 && (
+              <p className="text-xs text-gray-500 mt-0.5">
+                ({Math.round(adjustedNutrition.macros.fats)}g total)
+              </p>
+            )}
           </div>
         </div>
 

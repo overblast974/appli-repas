@@ -12,6 +12,7 @@ import { MEAL_DATABASE } from './mealDatabase';
 const MAX_DEVIATION = 0.05; // 5% de marge d'erreur maximum
 const MIN_MULTIPLIER = 0.5; // Multiplicateur minimum pour les portions (50%)
 const MAX_MULTIPLIER = 2.0; // Multiplicateur maximum pour les portions (200%)
+const MAX_ATTEMPTS = 50; // Nombre maximum de tentatives pour trouver une combinaison valide
 
 /**
  * Calcule les quantités ajustées d'un ingrédient selon le nombre de portions
@@ -190,7 +191,24 @@ export function generateMealPlan(
 }
 
 /**
+ * Calcule un score de qualité pour une combinaison de macros
+ * Plus le score est bas, meilleure est la combinaison
+ */
+function calculateMacroScore(
+  actualMacros: { protein: number; carbs: number; fats: number },
+  targetMacros: { protein: number; carbs: number; fats: number }
+): number {
+  const proteinDeviation = Math.abs(actualMacros.protein - targetMacros.protein) / targetMacros.protein;
+  const carbsDeviation = Math.abs(actualMacros.carbs - targetMacros.carbs) / targetMacros.carbs;
+  const fatsDeviation = Math.abs(actualMacros.fats - targetMacros.fats) / targetMacros.fats;
+
+  // Score = somme pondérée des déviations (plus c'est bas, mieux c'est)
+  return proteinDeviation * 2 + carbsDeviation + fatsDeviation; // Protéines x2 car prioritaires
+}
+
+/**
  * Génère un plan alimentaire pour une journée
+ * Utilise un système de réessais pour garantir les macros dans la marge de 5%
  */
 function generateDailyPlan(
   userProfile: UserProfile,
@@ -240,32 +258,64 @@ function generateDailyPlan(
     ];
   }
 
-  // Sélectionner et ajuster les repas
-  const meals = selectAndAdjustMeals(
-    calorieDistribution,
-    targetCalories,
-    dayIndex,
-    userProfile,
-    usedMealIds
-  );
+  // Essayer plusieurs combinaisons jusqu'à trouver une valide
+  let bestMeals: MealWithQuantity[] | null = null;
+  let bestScore = Infinity;
+  let bestMacroValidation: { isValid: boolean; deviations: any } | null = null;
+  const tempUsedMealIds = new Set(usedMealIds); // Copie temporaire
 
-  // Calculer la nutrition totale
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    // Sélectionner et ajuster les repas
+    const meals = selectAndAdjustMeals(
+      calorieDistribution,
+      targetCalories,
+      metabolicResults.macros,
+      dayIndex,
+      userProfile,
+      tempUsedMealIds,
+      attempt
+    );
+
+    // Calculer la nutrition totale
+    const totalNutrition = calculateTotalNutrition(meals);
+
+    // Valider les macros
+    const macroValidation = validateMacroTargets(
+      totalNutrition.macros,
+      metabolicResults.macros
+    );
+
+    // Calculer le score de cette combinaison
+    const score = calculateMacroScore(totalNutrition.macros, metabolicResults.macros);
+
+    // Si cette combinaison est meilleure, la garder
+    if (score < bestScore) {
+      bestScore = score;
+      bestMeals = meals;
+      bestMacroValidation = macroValidation;
+
+      // Si les macros sont dans la marge de 5%, on arrête les tentatives
+      if (macroValidation.isValid) {
+        // Marquer les repas comme utilisés
+        meals.forEach(meal => usedMealIds.add(meal.id));
+        break;
+      }
+    }
+  }
+
+  // Utiliser la meilleure combinaison trouvée
+  const meals = bestMeals!;
   const totalNutrition = calculateTotalNutrition(meals);
+  const macroValidation = bestMacroValidation!;
 
   // Calculer la déviation par rapport à l'objectif calorique
   const deviation =
     Math.abs(totalNutrition.calories - targetCalories) / targetCalories;
 
-  // Valider que les macros respectent les cibles avec ±5% de marge
-  const macroValidation = validateMacroTargets(
-    totalNutrition.macros,
-    metabolicResults.macros
-  );
-
   // Afficher un avertissement si les macros ne respectent pas les cibles
   if (!macroValidation.isValid) {
     console.warn(
-      `Jour ${dayIndex + 1}: Macros hors cible (±5%)`,
+      `Jour ${dayIndex + 1}: Macros hors cible (±5%) après ${MAX_ATTEMPTS} tentatives`,
       `Protéines: ${(macroValidation.deviations.protein * 100).toFixed(1)}%`,
       `Glucides: ${(macroValidation.deviations.carbs * 100).toFixed(1)}%`,
       `Lipides: ${(macroValidation.deviations.fats * 100).toFixed(1)}%`
@@ -282,27 +332,57 @@ function generateDailyPlan(
 }
 
 /**
- * Sélectionne et ajuste les repas pour atteindre les objectifs caloriques
+ * Sélectionne et ajuste les repas pour atteindre les objectifs caloriques et macros
+ * @param attempt - Numéro de tentative pour introduire de la variabilité
  */
 function selectAndAdjustMeals(
   distribution: { type: MealType; percentage: number }[],
   targetCalories: number,
+  targetMacros: { protein: number; carbs: number; fats: number },
   dayIndex: number,
   userProfile: UserProfile,
-  usedMealIds: Set<string>
+  usedMealIds: Set<string>,
+  attempt: number = 0
 ): MealWithQuantity[] {
   const selectedMeals: MealWithQuantity[] = [];
 
+  // Calculer les macros cibles par repas (proportionnellement aux calories)
   for (const { type, percentage } of distribution) {
     const targetMealCalories = targetCalories * percentage;
-    const meal = selectMealForType(type, dayIndex, selectedMeals.length, userProfile, usedMealIds);
+    const targetMealProtein = targetMacros.protein * percentage;
+    const targetMealCarbs = targetMacros.carbs * percentage;
+    const targetMealFats = targetMacros.fats * percentage;
+
+    const meal = selectMealForType(
+      type,
+      dayIndex,
+      selectedMeals.length,
+      userProfile,
+      usedMealIds,
+      attempt
+    );
 
     if (meal) {
-      // Marquer ce repas comme utilisé
-      usedMealIds.add(meal.id);
+      // NE PAS marquer comme utilisé ici - sera fait dans generateDailyPlan si la combinaison est retenue
 
-      // Calculer le multiplicateur pour ajuster les quantités avec limites
-      let multiplier = targetMealCalories / meal.nutrition.calories;
+      // Calculer le multiplicateur optimal en tenant compte des macros ET des calories
+      // On privilégie l'équilibre des macros en calculant plusieurs multiplicateurs possibles
+      const calorieMultiplier = targetMealCalories / meal.nutrition.calories;
+      const proteinMultiplier = targetMealProtein / meal.nutrition.macros.protein;
+      const carbsMultiplier = targetMealCarbs / meal.nutrition.macros.carbs;
+      const fatsMultiplier = targetMealFats / meal.nutrition.macros.fats;
+
+      // Utiliser une moyenne pondérée des multiplicateurs
+      // Protéines x3 car prioritaires, calories x2, carbs et fats x1
+      let multiplier =
+        (proteinMultiplier * 3 + calorieMultiplier * 2 + carbsMultiplier + fatsMultiplier) / 7;
+
+      // Ajouter une petite variation aléatoire pour explorer différentes solutions
+      if (attempt > 0) {
+        const variation = 0.95 + Math.random() * 0.1; // variation de -5% à +5%
+        multiplier *= variation;
+      }
+
       // Appliquer les limites min/max pour éviter des portions irréalistes
       multiplier = Math.max(MIN_MULTIPLIER, Math.min(MAX_MULTIPLIER, multiplier));
 
@@ -341,13 +421,15 @@ function selectAndAdjustMeals(
  * S'assure qu'on a toujours des repas différents et appropriés
  *
  * RÈGLE: 1 repas maximum 1x/semaine (pour éviter la monotonie)
+ * @param attempt - Numéro de tentative pour sélectionner des repas différents
  */
 function selectMealForType(
   type: MealType,
   _dayIndex: number,
   _mealIndex: number,
   userProfile: UserProfile,
-  usedMealIds: Set<string>
+  usedMealIds: Set<string>,
+  attempt: number = 0
 ): Meal | null {
   let availableMeals: Meal[] = [];
 
@@ -417,10 +499,15 @@ function selectMealForType(
   }
 
   // Mélanger les repas disponibles pour plus de variété
+  // Utiliser attempt comme seed pour obtenir des combinaisons différentes à chaque tentative
   const shuffled = [...availableMeals].sort(() => Math.random() - 0.5);
 
-  // Sélectionner le premier repas après mélange
-  return shuffled[0];
+  // Sélectionner un repas aléatoire parmi les X premiers (X augmente avec attempt)
+  // Pour attempt=0, on prend le premier. Pour attempt>0, on explore plus de possibilités
+  const poolSize = Math.min(shuffled.length, Math.max(1, Math.floor(attempt / 5) + 1));
+  const randomIndex = Math.floor(Math.random() * poolSize);
+
+  return shuffled[randomIndex];
 }
 
 

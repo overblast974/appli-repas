@@ -14,6 +14,8 @@ export interface UserProfile {
   // Habitudes de vie
   activityLevel: ActivityLevel;
   exerciseFrequency: number; // jours par semaine
+  exerciseDuration?: number; // minutes par séance
+  exerciseIntensity?: 'light' | 'moderate' | 'intense'; // Intensité des entraînements
   sleepHours: number;
 
   // Objectifs
@@ -112,7 +114,8 @@ export interface DailyMealPlan {
 }
 
 export interface MealWithQuantity extends Meal {
-  multiplier: number; // Facteur multiplicateur pour ajuster les quantités
+  multiplier: number; // Facteur multiplicateur pour ajuster les quantités nutritionnelles
+  servings?: number; // Nombre de portions/personnes (par défaut 1) - Feature premium
 }
 
 export interface MealPlan {

@@ -391,6 +391,45 @@ const LifestyleStep: React.FC<{
         />
 
         <Input
+          label="Durée par séance (minutes)"
+          type="number"
+          min="0"
+          max="300"
+          placeholder="60"
+          value={userProfile.exerciseDuration ?? ''}
+          onChange={(e) => updateUserProfile({ exerciseDuration: parseInt(e.target.value) })}
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Intensité de vos entraînements
+        </label>
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { value: 'light', label: 'Légère', description: 'Marche, yoga' },
+            { value: 'moderate', label: 'Modérée', description: 'Jogging, natation' },
+            { value: 'intense', label: 'Intense', description: 'HIIT, musculation' },
+          ].map((intensity) => (
+            <Card
+              key={intensity.value}
+              hover
+              className={`cursor-pointer text-center ${
+                userProfile.exerciseIntensity === intensity.value
+                  ? 'ring-2 ring-primary-500 bg-primary-50'
+                  : ''
+              }`}
+              onClick={() => updateUserProfile({ exerciseIntensity: intensity.value })}
+            >
+              <p className="font-medium text-sm">{intensity.label}</p>
+              <p className="text-xs text-gray-600 mt-1">{intensity.description}</p>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <Input
           label="Heures de sommeil par nuit"
           type="number"
           min="4"
@@ -621,17 +660,23 @@ const PreferencesStep: React.FC<{
         </label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {commonAllergens.map((allergen) => (
-            <div
+            <Card
               key={allergen}
+              hover
               onClick={() => toggleAllergy(allergen)}
-              className={`selection-card ${
+              className={`cursor-pointer text-center transition-all ${
                 (userProfile.allergies || []).includes(allergen)
-                  ? 'selection-card-active'
-                  : ''
+                  ? 'ring-2 ring-primary-500 bg-primary-50'
+                  : 'hover:bg-gray-50'
               }`}
             >
-              <p className="text-sm font-medium">{allergen}</p>
-            </div>
+              <p className="text-sm font-medium text-gray-800">{allergen}</p>
+              {(userProfile.allergies || []).includes(allergen) && (
+                <div className="w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center text-white text-xs ml-auto -mt-5">
+                  ✓
+                </div>
+              )}
+            </Card>
           ))}
         </div>
         <p className="text-xs text-gray-500 mt-2">

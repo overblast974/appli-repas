@@ -59,7 +59,11 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         set({ user, session });
 
         // Charger les meal plans de l'utilisateur
-        await get().loadUserMealPlans();
+        try {
+          await get().loadUserMealPlans();
+        } catch (error) {
+          console.warn('Impossible de charger les meal plans:', error);
+        }
       }
 
       // Écouter les changements d'authentification
@@ -67,17 +71,21 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         set({ session: newSession, user: newSession?.user || null });
 
         if (newSession) {
-          await get().loadUserMealPlans();
+          try {
+            await get().loadUserMealPlans();
+          } catch (error) {
+            console.warn('Impossible de charger les meal plans:', error);
+          }
         } else {
           set({ userMealPlans: [] });
         }
       });
-
-      set({ initialized: true });
     } catch (error) {
       console.error('Erreur lors de l\'initialisation:', error);
+      // L'application peut continuer à fonctionner sans authentification
     } finally {
-      set({ loading: false });
+      // Toujours marquer comme initialisé pour permettre le chargement de l'app
+      set({ initialized: true, loading: false });
     }
   },
 

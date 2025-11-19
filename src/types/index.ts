@@ -14,6 +14,8 @@ export interface UserProfile {
   // Habitudes de vie
   activityLevel: ActivityLevel;
   exerciseFrequency: number; // jours par semaine
+  exerciseDuration?: number; // minutes par séance
+  exerciseIntensity?: 'light' | 'moderate' | 'intense'; // Intensité des entraînements
   sleepHours: number;
 
   // Objectifs

@@ -262,9 +262,11 @@ function generateDailyPlan(
   let bestMeals: MealWithQuantity[] | null = null;
   let bestScore = Infinity;
   let bestMacroValidation: { isValid: boolean; deviations: any } | null = null;
-  const tempUsedMealIds = new Set(usedMealIds); // Copie temporaire
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    // CORRECTION: Réinitialiser la copie temporaire à chaque tentative
+    const tempUsedMealIds = new Set(usedMealIds);
+
     // Sélectionner et ajuster les repas
     const meals = selectAndAdjustMeals(
       calorieDistribution,
@@ -296,8 +298,6 @@ function generateDailyPlan(
 
       // Si les macros sont dans la marge de 5%, on arrête les tentatives
       if (macroValidation.isValid) {
-        // Marquer les repas comme utilisés
-        meals.forEach(meal => usedMealIds.add(meal.id));
         break;
       }
     }
@@ -307,6 +307,9 @@ function generateDailyPlan(
   const meals = bestMeals!;
   const totalNutrition = calculateTotalNutrition(meals);
   const macroValidation = bestMacroValidation!;
+
+  // CORRECTION: Toujours marquer les repas comme utilisés (même si pas parfait)
+  meals.forEach(meal => usedMealIds.add(meal.id));
 
   // Calculer la déviation par rapport à l'objectif calorique
   const deviation =

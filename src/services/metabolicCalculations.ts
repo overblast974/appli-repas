@@ -155,6 +155,44 @@ function calculateMacros(
 }
 
 /**
+ * Coefficients MET (Metabolic Equivalent of Task) pour différentes intensités d'exercice
+ * Source: Compendium of Physical Activities
+ */
+const EXERCISE_MET_VALUES = {
+  light: 4, // Marche modérée, yoga, stretching
+  moderate: 6.5, // Jogging léger, natation modérée, vélo
+  intense: 9, // Course, HIIT, musculation intense, sports collectifs
+};
+
+/**
+ * Calcule les calories brûlées par l'exercice spécifique
+ * Formule: Calories = MET × Poids (kg) × Durée (heures)
+ *
+ * @param weight - Poids en kg
+ * @param intensity - Intensité de l'exercice
+ * @param duration - Durée en minutes
+ * @param frequency - Fréquence par semaine
+ * @returns Calories brûlées par jour en moyenne
+ */
+function calculateExerciseCalories(
+  weight: number,
+  intensity: 'light' | 'moderate' | 'intense',
+  duration: number,
+  frequency: number
+): number {
+  const met = EXERCISE_MET_VALUES[intensity];
+  const durationInHours = duration / 60;
+
+  // Calories par séance
+  const caloriesPerSession = met * weight * durationInHours;
+
+  // Moyenne par jour
+  const caloriesPerDay = (caloriesPerSession * frequency) / 7;
+
+  return Math.round(caloriesPerDay);
+}
+
+/**
  * Fonction principale de calcul des besoins métaboliques
  * Utilise la formule la plus appropriée selon les données disponibles
  */
@@ -180,7 +218,30 @@ export function calculateMetabolicNeeds(profile: UserProfile): MetabolicResults 
 
   // Calculer le TDEE (Total Daily Energy Expenditure)
   const activityMultiplier = ACTIVITY_MULTIPLIERS[profile.activityLevel];
-  const tdee = Math.round(bmr * activityMultiplier);
+  let tdee = Math.round(bmr * activityMultiplier);
+
+  // AMÉLIORATION: Ajouter les calories de l'exercice spécifique si disponibles
+  if (
+    profile.exerciseDuration &&
+    profile.exerciseDuration > 0 &&
+    profile.exerciseIntensity &&
+    profile.exerciseFrequency > 0
+  ) {
+    const exerciseCalories = calculateExerciseCalories(
+      profile.weight,
+      profile.exerciseIntensity,
+      profile.exerciseDuration,
+      profile.exerciseFrequency
+    );
+
+    // Ajouter au TDEE
+    tdee += exerciseCalories;
+
+    console.log(
+      `Calories d'exercice ajoutées: ${exerciseCalories} kcal/jour` +
+      ` (${profile.exerciseFrequency}x/semaine, ${profile.exerciseDuration}min, ${profile.exerciseIntensity})`
+    );
+  }
 
   // Ajuster selon l'objectif
   const goalAdjustment = GOAL_ADJUSTMENTS[profile.goal];

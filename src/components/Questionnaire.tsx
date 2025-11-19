@@ -264,20 +264,19 @@ const PersonalInfoStep: React.FC<{
         {[
           { value: 'male' as Gender, label: 'Homme' },
           { value: 'female' as Gender, label: 'Femme' },
-        ].map((option) => (
-          <Card
-            key={option.value}
-            hover
-            className={`cursor-pointer text-center ${
-              userProfile.gender === option.value
-                ? 'ring-2 ring-primary-500 bg-primary-50'
-                : ''
-            }`}
-            onClick={() => updateUserProfile({ gender: option.value })}
-          >
-            <p className="font-medium">{option.label}</p>
-          </Card>
-        ))}
+        ].map((option) => {
+          const isSelected = userProfile.gender === option.value;
+          return (
+            <div
+              key={option.value}
+              className={`selection-card ${isSelected ? 'selection-card-active' : ''}`}
+              onClick={() => updateUserProfile({ gender: option.value })}
+            >
+              <p className="font-medium">{option.label}</p>
+              {isSelected && <div className="selection-card-check absolute top-2 right-2">✓</div>}
+            </div>
+          );
+        })}
       </div>
       {errors.gender && <p className="text-sm text-red-600 mt-2">{errors.gender}</p>}
     </div>
@@ -348,30 +347,24 @@ const LifestyleStep: React.FC<{
           Niveau d'activité physique
         </label>
         <div className="space-y-3">
-          {activityLevels.map((level) => (
-            <Card
-              key={level.value}
-              hover
-              className={`cursor-pointer ${
-                userProfile.activityLevel === level.value
-                  ? 'ring-2 ring-primary-500 bg-primary-50'
-                  : ''
-              }`}
-              onClick={() => updateUserProfile({ activityLevel: level.value })}
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">{level.label}</p>
-                  <p className="text-sm text-gray-600">{level.description}</p>
-                </div>
-                {userProfile.activityLevel === level.value && (
-                  <div className="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center text-white">
-                    ✓
+          {activityLevels.map((level) => {
+            const isSelected = userProfile.activityLevel === level.value;
+            return (
+              <div
+                key={level.value}
+                className={`selection-card ${isSelected ? 'selection-card-active' : ''}`}
+                onClick={() => updateUserProfile({ activityLevel: level.value })}
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-medium">{level.label}</p>
+                    <p className="text-sm text-gray-600 mt-1">{level.description}</p>
                   </div>
-                )}
+                  {isSelected && <div className="selection-card-check">✓</div>}
+                </div>
               </div>
-            </Card>
-          ))}
+            );
+          })}
         </div>
         {errors.activityLevel && (
           <p className="text-sm text-red-600 mt-2">{errors.activityLevel}</p>
@@ -410,21 +403,20 @@ const LifestyleStep: React.FC<{
             { value: 'light', label: 'Légère', description: 'Marche, yoga' },
             { value: 'moderate', label: 'Modérée', description: 'Jogging, natation' },
             { value: 'intense', label: 'Intense', description: 'HIIT, musculation' },
-          ].map((intensity) => (
-            <Card
-              key={intensity.value}
-              hover
-              className={`cursor-pointer text-center ${
-                userProfile.exerciseIntensity === intensity.value
-                  ? 'ring-2 ring-primary-500 bg-primary-50'
-                  : ''
-              }`}
-              onClick={() => updateUserProfile({ exerciseIntensity: intensity.value })}
-            >
-              <p className="font-medium text-sm">{intensity.label}</p>
-              <p className="text-xs text-gray-600 mt-1">{intensity.description}</p>
-            </Card>
-          ))}
+          ].map((intensity) => {
+            const isSelected = userProfile.exerciseIntensity === intensity.value;
+            return (
+              <div
+                key={intensity.value}
+                className={`selection-card ${isSelected ? 'selection-card-active' : ''}`}
+                onClick={() => updateUserProfile({ exerciseIntensity: intensity.value })}
+              >
+                <p className="font-medium text-sm">{intensity.label}</p>
+                <p className="text-xs text-gray-600 mt-1">{intensity.description}</p>
+                {isSelected && <div className="selection-card-check absolute top-2 right-2">✓</div>}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -490,31 +482,25 @@ const GoalsStep: React.FC<{
           Quel est votre objectif principal ?
         </label>
         <div className="space-y-3">
-          {goals.map((goal) => (
-            <Card
-              key={goal.value}
-              hover
-              className={`cursor-pointer ${
-                userProfile.goal === goal.value
-                  ? 'ring-2 ring-primary-500 bg-primary-50'
-                  : ''
-              }`}
-              onClick={() => updateUserProfile({ goal: goal.value })}
-            >
-              <div className="flex items-center gap-4">
-                <div className="text-3xl">{goal.emoji}</div>
-                <div className="flex-1">
-                  <p className="font-medium">{goal.label}</p>
-                  <p className="text-sm text-gray-600">{goal.description}</p>
-                </div>
-                {userProfile.goal === goal.value && (
-                  <div className="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center text-white">
-                    ✓
+          {goals.map((goal) => {
+            const isSelected = userProfile.goal === goal.value;
+            return (
+              <div
+                key={goal.value}
+                className={`selection-card ${isSelected ? 'selection-card-active' : ''}`}
+                onClick={() => updateUserProfile({ goal: goal.value })}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="text-3xl">{goal.emoji}</div>
+                  <div className="flex-1">
+                    <p className="font-medium">{goal.label}</p>
+                    <p className="text-sm text-gray-600 mt-1">{goal.description}</p>
                   </div>
-                )}
+                  {isSelected && <div className="selection-card-check">✓</div>}
+                </div>
               </div>
-            </Card>
-          ))}
+            );
+          })}
         </div>
         {errors.goal && <p className="text-sm text-red-600 mt-2">{errors.goal}</p>}
       </div>
@@ -554,21 +540,20 @@ const PreferencesStep: React.FC<{
           Nombre de repas par jour
         </label>
         <div className="grid grid-cols-2 gap-4">
-          {[3, 4].map((num) => (
-            <Card
-              key={num}
-              hover
-              className={`cursor-pointer text-center ${
-                userProfile.mealsPerDay === num
-                  ? 'ring-2 ring-primary-500 bg-primary-50'
-                  : ''
-              }`}
-              onClick={() => updateUserProfile({ mealsPerDay: num })}
-            >
-              <p className="text-2xl font-bold text-primary-600">{num}</p>
-              <p className="text-sm text-gray-600">repas</p>
-            </Card>
-          ))}
+          {[3, 4].map((num) => {
+            const isSelected = userProfile.mealsPerDay === num;
+            return (
+              <div
+                key={num}
+                className={`selection-card ${isSelected ? 'selection-card-active' : ''}`}
+                onClick={() => updateUserProfile({ mealsPerDay: num })}
+              >
+                <p className="text-2xl font-bold text-primary-600">{num}</p>
+                <p className="text-sm text-gray-600">repas</p>
+                {isSelected && <div className="selection-card-check absolute top-2 right-2">✓</div>}
+              </div>
+            );
+          })}
         </div>
         {errors.mealsPerDay && <p className="text-sm text-red-600 mt-2">{errors.mealsPerDay}</p>}
       </div>
@@ -581,20 +566,19 @@ const PreferencesStep: React.FC<{
           {[
             { value: true, label: 'Oui' },
             { value: false, label: 'Non' },
-          ].map((option) => (
-            <Card
-              key={option.value.toString()}
-              hover
-              className={`cursor-pointer text-center ${
-                userProfile.includeSnacks === option.value
-                  ? 'ring-2 ring-primary-500 bg-primary-50'
-                  : ''
-              }`}
-              onClick={() => updateUserProfile({ includeSnacks: option.value })}
-            >
-              <p className="font-medium">{option.label}</p>
-            </Card>
-          ))}
+          ].map((option) => {
+            const isSelected = userProfile.includeSnacks === option.value;
+            return (
+              <div
+                key={option.value.toString()}
+                className={`selection-card ${isSelected ? 'selection-card-active' : ''}`}
+                onClick={() => updateUserProfile({ includeSnacks: option.value })}
+              >
+                <p className="font-medium">{option.label}</p>
+                {isSelected && <div className="selection-card-check absolute top-2 right-2">✓</div>}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -606,20 +590,19 @@ const PreferencesStep: React.FC<{
           {[
             { value: true, label: 'Oui' },
             { value: false, label: 'Non' },
-          ].map((option) => (
-            <Card
-              key={option.value.toString()}
-              hover
-              className={`cursor-pointer text-center ${
-                userProfile.usesWhey === option.value
-                  ? 'ring-2 ring-primary-500 bg-primary-50'
-                  : ''
-              }`}
-              onClick={() => updateUserProfile({ usesWhey: option.value })}
-            >
-              <p className="font-medium">{option.label}</p>
-            </Card>
-          ))}
+          ].map((option) => {
+            const isSelected = userProfile.usesWhey === option.value;
+            return (
+              <div
+                key={option.value.toString()}
+                className={`selection-card ${isSelected ? 'selection-card-active' : ''}`}
+                onClick={() => updateUserProfile({ usesWhey: option.value })}
+              >
+                <p className="font-medium">{option.label}</p>
+                {isSelected && <div className="selection-card-check absolute top-2 right-2">✓</div>}
+              </div>
+            );
+          })}
         </div>
         <p className="text-xs text-gray-500 mt-2">
           Certains petits-déjeuners contiennent des protéines whey pour augmenter l'apport protéique
@@ -634,20 +617,19 @@ const PreferencesStep: React.FC<{
           {[
             { value: true, label: 'Oui, végétarien' },
             { value: false, label: 'Non, tout' },
-          ].map((option) => (
-            <Card
-              key={option.value.toString()}
-              hover
-              className={`cursor-pointer text-center ${
-                userProfile.isVegetarian === option.value
-                  ? 'ring-2 ring-primary-500 bg-primary-50'
-                  : ''
-              }`}
-              onClick={() => updateUserProfile({ isVegetarian: option.value })}
-            >
-              <p className="font-medium">{option.label}</p>
-            </Card>
-          ))}
+          ].map((option) => {
+            const isSelected = userProfile.isVegetarian === option.value;
+            return (
+              <div
+                key={option.value.toString()}
+                className={`selection-card ${isSelected ? 'selection-card-active' : ''}`}
+                onClick={() => updateUserProfile({ isVegetarian: option.value })}
+              >
+                <p className="font-medium">{option.label}</p>
+                {isSelected && <div className="selection-card-check absolute top-2 right-2">✓</div>}
+              </div>
+            );
+          })}
         </div>
         <p className="text-xs text-gray-500 mt-2">
           Les repas végétariens excluent la viande et le poisson mais incluent œufs et produits laitiers
@@ -659,25 +641,23 @@ const PreferencesStep: React.FC<{
           Avez-vous des allergies ou intolérances alimentaires ?
         </label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {commonAllergens.map((allergen) => (
-            <Card
-              key={allergen}
-              hover
-              onClick={() => toggleAllergy(allergen)}
-              className={`cursor-pointer text-center transition-all ${
-                (userProfile.allergies || []).includes(allergen)
-                  ? 'ring-2 ring-primary-500 bg-primary-50'
-                  : 'hover:bg-gray-50'
-              }`}
-            >
-              <p className="text-sm font-medium text-gray-800">{allergen}</p>
-              {(userProfile.allergies || []).includes(allergen) && (
-                <div className="w-5 h-5 bg-primary-500 rounded-full flex items-center justify-center text-white text-xs ml-auto -mt-5">
-                  ✓
-                </div>
-              )}
-            </Card>
-          ))}
+          {commonAllergens.map((allergen) => {
+            const isSelected = (userProfile.allergies || []).includes(allergen);
+            return (
+              <div
+                key={allergen}
+                onClick={() => toggleAllergy(allergen)}
+                className={`selection-card ${isSelected ? 'selection-card-active' : ''}`}
+              >
+                <p className="text-sm font-medium">{allergen}</p>
+                {isSelected && (
+                  <div className="selection-card-check absolute top-2 right-2">
+                    ✓
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
         <p className="text-xs text-gray-500 mt-2">
           Sélectionnez tous les allergènes que vous devez éviter. Les repas seront filtrés en conséquence.

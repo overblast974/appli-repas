@@ -95,18 +95,36 @@ export const authService = {
    * Récupérer la session actuelle
    */
   async getSession() {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    return data.session;
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.warn('Erreur lors de la récupération de la session:', error);
+        return null;
+      }
+      return data.session;
+    } catch (error) {
+      // Gestion des erreurs CORS ou réseau
+      console.warn('Impossible de se connecter à Supabase:', error);
+      return null;
+    }
   },
 
   /**
    * Récupérer l'utilisateur actuel
    */
   async getCurrentUser() {
-    const { data, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    return data.user;
+    try {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.warn('Erreur lors de la récupération de l\'utilisateur:', error);
+        return null;
+      }
+      return data.user;
+    } catch (error) {
+      // Gestion des erreurs CORS ou réseau
+      console.warn('Impossible de se connecter à Supabase:', error);
+      return null;
+    }
   },
 
   /**

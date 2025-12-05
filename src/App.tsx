@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useAppStore } from './store/useAppStore';
 import { useAuthStore } from './store/useAuthStore';
@@ -13,6 +13,7 @@ import { Auth } from './components/Auth';
 function App() {
   const { currentStep } = useAppStore();
   const { user, loading, initialized, initialize } = useAuthStore();
+  const [showAuth, setShowAuth] = useState(false);
 
   // Initialiser l'authentification au démarrage
   useEffect(() => {
@@ -33,12 +34,12 @@ function App() {
     );
   }
 
-  // Si l'utilisateur n'est pas connecté, afficher la page de connexion
-  if (!user) {
-    return <Auth onSuccess={() => {}} />;
+  // Si l'utilisateur n'est pas connecté ET a choisi de se connecter, afficher la page de connexion
+  if (!user && showAuth) {
+    return <Auth onSuccess={() => setShowAuth(false)} onSkip={() => setShowAuth(false)} />;
   }
 
-  // Utilisateur connecté, afficher l'application normale
+  // Afficher l'application (avec ou sans utilisateur connecté)
   return (
     <div className="min-h-screen">
       <AnimatePresence mode="wait">

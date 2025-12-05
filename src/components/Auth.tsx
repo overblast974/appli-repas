@@ -8,9 +8,10 @@ import { authService } from '../services/authService';
 
 interface AuthProps {
   onSuccess: () => void;
+  onSkip?: () => void;
 }
 
-export const Auth: React.FC<AuthProps> = ({ onSuccess }) => {
+export const Auth: React.FC<AuthProps> = ({ onSuccess, onSkip }) => {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,12 +46,13 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess }) => {
       console.error('Erreur d\'authentification:', err);
 
       // Messages d'erreur en français
-      if (err.message.includes('Invalid login credentials')) {
-        setError('Email ou mot de passe incorrect');
+      if (err.message.includes('Email not confirmed')) {
+        setError('⚠️ Veuillez confirmer votre email avant de vous connecter. Vérifiez votre boîte de réception et vos spams.');
+      } else if (err.message.includes('Invalid login credentials')) {
+        // L'erreur peut être due à un email non confirmé ou des identifiants incorrects
+        setError('Email ou mot de passe incorrect. Si vous venez de créer votre compte, pensez à confirmer votre email.');
       } else if (err.message.includes('User already registered')) {
         setError('Cet email est déjà utilisé');
-      } else if (err.message.includes('Email not confirmed')) {
-        setError('Veuillez confirmer votre email avant de vous connecter');
       } else if (err.message.includes('Password should be at least')) {
         setError('Le mot de passe doit contenir au moins 6 caractères');
       } else {
@@ -207,6 +209,19 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess }) => {
             </div>
           )}
         </Card>
+
+        {/* Bouton continuer sans compte */}
+        {onSkip && (
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={onSkip}
+              className="text-sm text-gray-600 hover:text-gray-800 hover:underline"
+            >
+              Continuer sans compte
+            </button>
+          </div>
+        )}
 
         {/* Note de confidentialité */}
         <p className="text-center text-xs text-gray-500 mt-6">

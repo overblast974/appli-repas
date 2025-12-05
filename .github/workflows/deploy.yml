@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - claude/modern-elegant-ui-app-011CUsNJy3WawBXBfGZj5hRZ
+      - claude/meal-quantities-analysis-01CaNykzEiaG7XryiUgRcRHt
   workflow_dispatch:
 
 permissions:

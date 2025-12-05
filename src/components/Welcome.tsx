@@ -1,12 +1,18 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Utensils, Target, TrendingUp, Heart, History } from 'lucide-react';
+import { Utensils, Target, TrendingUp, Heart, History, LogIn } from 'lucide-react';
 import { Button } from './UI/Button';
 import { Card } from './UI/Card';
 import { useAppStore } from '../store/useAppStore';
+import { useAuthStore } from '../store/useAuthStore';
 
-export const Welcome: React.FC = () => {
+interface WelcomeProps {
+  onShowAuth?: () => void;
+}
+
+export const Welcome: React.FC<WelcomeProps> = ({ onShowAuth }) => {
   const { nextStep, setStep } = useAppStore();
+  const { user } = useAuthStore();
 
   const features = [
     {
@@ -34,6 +40,38 @@ export const Welcome: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-6xl w-full">
+        {/* Bouton de connexion/compte en haut à droite */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex justify-end mb-4"
+        >
+          {!user && onShowAuth ? (
+            <Button
+              variant="outline"
+              onClick={onShowAuth}
+              className="text-sm"
+            >
+              <LogIn className="w-4 h-4" />
+              Se connecter / S'inscrire
+            </Button>
+          ) : user ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600">
+                Connecté en tant que <strong>{user.email}</strong>
+              </span>
+              <Button
+                variant="outline"
+                onClick={() => useAuthStore.getState().signOut()}
+                className="text-sm"
+              >
+                Déconnexion
+              </Button>
+            </div>
+          ) : null}
+        </motion.div>
+
         {/* Hero Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

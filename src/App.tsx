@@ -43,7 +43,7 @@ function App() {
   return (
     <div className="min-h-screen">
       <AnimatePresence mode="wait">
-        {currentStep === 'welcome' && <Welcome key="welcome" />}
+        {currentStep === 'welcome' && <Welcome key="welcome" onShowAuth={() => setShowAuth(true)} />}
         {currentStep === 'questionnaire' && <Questionnaire key="questionnaire" />}
         {currentStep === 'results' && <Results key="results" />}
         {currentStep === 'plan' && <PlanSelection key="plan" />}
